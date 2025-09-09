@@ -15,13 +15,13 @@ Perfect for creating a large-format print.
 - Adds a **title** and **progress counter** if it's not completed yet
 - Draws **labels** on images and placeholders for missing ones
 - Adjustable **padding** around the mosaic
-- Saves as JPEG (default) or PNG
+- Saves as JPEG (default), PNG or TIF
 
 ---
 
 ## Example
 
-Here’s an in-progress example:
+Here’s a couple of in-progress examples:
 
 ![Messier](messier_mosaic.jpg)
 ![Caldwell](caldwell_mosaic.jpg)
@@ -30,7 +30,7 @@ Here’s an in-progress example:
 
 ## Installation
 
-Requires **Python 3**:
+First install **Python 3**:
 
 https://www.python.org/downloads/
 
