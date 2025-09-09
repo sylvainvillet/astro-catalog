@@ -10,7 +10,6 @@ def compute_grid_rows(grid_cols, layout_map, total):
 
 def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
     thumb_size = args.thumb_size
-    border_padding = args.border_padding
     padding = args.padding
     grid_cols = args.grid_cols
 
@@ -25,30 +24,30 @@ def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
         """Place an image or placeholder at the given slot and mark occupied cells."""
         slot_w = col_span * thumb_size
         slot_h = row_span * thumb_size
-        x = col * thumb_size + border_padding
-        y = row * thumb_size + border_padding
+        x = col * thumb_size + padding
+        y = row * thumb_size + padding
 
         # Draw border first
-        draw.rectangle([x, y, x + slot_w - 1, y + slot_h - 1], outline="gray", width=2)
+        draw.rectangle([x, y, x + slot_w, y + slot_h], outline="gray", width=1)
 
         # Place image or placeholder
         if num in images:
             img = ImageOps.fit(
                 images[num],
-                (slot_w - 2 * padding, slot_h - 2 * padding),
+                (slot_w - 1, slot_h - 1),
                 Image.LANCZOS,
                 centering=(0.5, 0.5)
             )
-            mosaic.paste(img, (x + padding, y + padding))
+            mosaic.paste(img, (x + 1, y + 1))
 
             # Draw the name on the image (centered at the bottom)
-            name_text = f"M{num}"
+            name_text = catalog.prefix() + f"{num}"
             bbox = draw.textbbox((0, 0), name_text, font=font)
             tw = bbox[2] - bbox[0]
             th = bbox[3] - bbox[1]
 
             text_x = x + (slot_w - tw) // 2
-            text_y = y + slot_h - th - 20  # 5px padding from bottom
+            text_y = y + slot_h - th - 20  # 20px padding from bottom
             draw.text((text_x, text_y), name_text, fill="white", font=font)
 
         else:

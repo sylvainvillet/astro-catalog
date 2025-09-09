@@ -22,8 +22,7 @@ def parse_args():
     parser.add_argument("--font-path", default="/System/Library/Fonts/HelveticaNeue.ttc")
     parser.add_argument("--font-size", type=int, default=32)
     parser.add_argument("--title-font-size", type=int, default=124)
-    parser.add_argument("--padding", type=int, default=5)
-    parser.add_argument("--border-padding", type=int, default=20)
+    parser.add_argument("--padding", type=int, default=20)
     return parser.parse_args()
 
 def main():
