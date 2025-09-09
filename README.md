@@ -114,3 +114,21 @@ This creates a high-quality PNG 20-column mosaic with larger cells and saves it 
 Increasing or reducing the number of columns can lead to bigger targets getting out of the grid, if this happens, adjust their position as described above.
 
 ---
+
+## FAQ
+
+- How do I adjust the framing of the pictures?
+
+You can crop your images with Photoshop, Gimp or other before running the script. Use an aspect ratio that matches the grid spot (1:1 for squares, 3:2, 2:1, etc...)
+
+- How do I generate a Messier catalog on a 11x10 grid, with the same size for all the images?
+
+Edit the `messier_layout` in the file `messier-catalog.py` to remove all the rows like this:
+
+`messier_layout = {}`
+
+And then run the script with 11 as grid-cols argument:
+
+```bash
+python3 messier-catalog.py --grid-cols 11
+```
