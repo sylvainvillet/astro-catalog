@@ -30,35 +30,40 @@ Here’s a couple of in-progress examples:
 
 ## Installation
 
-First install **Python 3**:
+1. Install **Python 3**:
 
 https://www.python.org/downloads/
 
-and then **Pillow**:
+2. Open a terminal and install **Pillow**:
 
 ```bash
 pip install pillow
 ````
 
+3. Clone or Download the project (Code -> Download ZIP)
+   
 ---
 
 ## Usage
 
-Prepare a folder with images named like:
+Copy your images to the `messier_images/` or `caldwell_images/` folders and ensure they start by one letter (M for Messier, C for Caldwell) and then the number like these examples:
 
 * `M31.jpg`
 * `M-42.png`
-* `M_45.jpeg`
+* `C 45.jpeg`
+* `C_66_123x60s.tif`
 
-Then run:
+Then open a terminal and run:
 
 ```bash
 python3 messier-catalog.py
 ```
 
-By default, it looks for images in `messier_images/` and saves `messier_mosaic.jpg`.
+or
 
-For the Caldwell catalog, it's the same principle with the `caldwell-catalog.py` script who looks for files starting with "C" in a `caldwell_images/` folder.
+```bash
+python3 caldwell-catalog.py
+```
 
 ---
 
