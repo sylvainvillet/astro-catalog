@@ -4,9 +4,9 @@ from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 
 # --- SETTINGS ---
-input_folder = "messier_images"   # where your M_xx_ files are
+input_folder = "/Users/sylvain/Library/CloudStorage/SynologyDrive-home/Seestar/Messier/messier_images"   # where your M_xx_ files are
 output_file = "messier_mosaic.jpg"
-grid_cols = 16
+grid_cols = 17
 thumb_size = (300, 300)   # size of each Messier thumbnail
 font_path = "/System/Library/Fonts/HelveticaNeue.ttc"
 font_size = 32
@@ -17,11 +17,11 @@ border_padding = 20  # space around the whole mosaic
 # Messier layout: MessierNumber : (col, row, col_span, row_span)
 layout_map = {
     8:  ( 2, 1, 2, 2),   # M8  Lagoon Nebula
-    16: (13, 1, 2, 2),   # M16 Eagle Nebula
+    16: (14, 1, 2, 2),   # M16 Eagle Nebula
     31: ( 7, 2, 4, 2),   # M31 Andromeda
-    33: ( 5, 5, 2, 2),   # M33 Triangulum Galaxy
-    42: (12, 5, 2, 2),   # M42 Orion Nebula
-    45: ( 1, 4, 2, 2),   # M45 Pleiades
+    33: ( 1, 4, 3, 2),   # M33 Triangulum Galaxy
+    42: ( 5, 5, 2, 2),   # M42 Orion Nebula
+    45: (13, 4, 2, 2),   # M45 Pleiades
     # Others default to auto-placement or smaller slots if not listed
 }
 
