@@ -23,7 +23,7 @@ def build_mosaic(args, layout_map, catalog):
         font = ImageFont.load_default(args.font_size)
         title_font = ImageFont.load_default(args.title_font_size)
 
-    draw_title(draw, catalog.title(), title_font, mosaic_w, args.thumb_size, args.padding)
+    draw_title(draw, args.title, title_font, mosaic_w, args.thumb_size, args.padding)
     draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog)
 
     # Show progress if not completed

@@ -95,6 +95,7 @@ Available arguments:
 | ------------------- | ----------------------------------------------| -------------------------------------- |
 | `--input-folder`    | `messier_images` or `caldwell_images`         | Folder containing Messier images       |
 | `--output-file`     | `messier_mosaic.jpg` or `caldwell_mosaic.jpg` | Output file path                       |
+| `--title`           | `Messier Catalogue` or `Caldwell Catalogue`   | Title.                                 |
 | `--grid-cols`       | `17`                                          | Number of columns in the grid          |
 | `--thumb-size`      | `300`                                         | Thumbnail size (pixels)                |
 | `--font-path`       | `/System/Library/Fonts/HelveticaNeue.ttc`     | Path to font file                      |
