@@ -1,4 +1,6 @@
 .DS_Store
 messier_images/*
 messier_mosaic.*
+caldwell_images/*
+caldwell_mosaic.*
 src/__pycache__/*
