@@ -19,6 +19,15 @@ Perfect for creating a large-format print.
 
 ---
 
+## Example
+
+Here’s an in-progress example:
+
+![Messier](messier_mosaic.jpg)
+![Caldwell](caldwell_mosaic.jpg)
+
+---
+
 ## Installation
 
 Requires **Python 3**:

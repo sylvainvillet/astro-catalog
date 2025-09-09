@@ -2,9 +2,15 @@ import argparse
 from src.mosaic import build_mosaic
 from src.catalog import Catalog
 
-# caldwell layout: CaldwellNumber : (col, row, col_span, row_span)
+# Caldwell layout: CaldwellNumber : (col, row, col_span, row_span)
 caldwell_layout = {
-    33:  ( 2, 2, 2, 3),   # C33  Estern Veil Nebula
+    20: ( 1, 1, 3, 2),    # C20 North America Nebula
+    33: (14, 1, 2, 3),    # C33 Veil Nebula 
+    68: ( 7, 2, 2, 2),    # C68 Helix Nebula 
+    70: ( 2, 4, 3, 2),    # C70 NGC 300
+    71: ( 9, 5, 4, 2),    # C71 Large Magellanic Cloud
+    72: ( 0, 7, 3, 2),    # C72 Small Magellanic Cloud
+    99: (14, 6, 3, 2),    # C99 Coalsack Nebula
 }
 
 def parse_args():
