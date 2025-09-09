@@ -1,6 +1,7 @@
 import os
 import re
 from PIL import Image, ImageDraw, ImageFont, ImageOps
+from src.utils import open_with_default_viewer
 
 
 # --- SETTINGS ---
@@ -191,3 +192,4 @@ if len(images) < 110:
 # Save result
 mosaic.save(output_file)
 print(f"Mosaic saved as {output_file}")
+open_with_default_viewer(output_file)
