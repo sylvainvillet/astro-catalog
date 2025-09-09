@@ -95,7 +95,7 @@ Available arguments:
 | ------------------- | ----------------------------------------------| -------------------------------------- |
 | `--input-folder`    | `messier_images` or `caldwell_images`         | Folder containing Messier images       |
 | `--output-file`     | `messier_mosaic.jpg` or `caldwell_mosaic.jpg` | Output file path                       |
-| `--title`           | `Messier Catalogue` or `Caldwell Catalogue`   | Title.                                 |
+| `--title`           | `Messier Catalog` or `Caldwell Catalog`       | Title                                  |
 | `--grid-cols`       | `17`                                          | Number of columns in the grid          |
 | `--thumb-size`      | `300`                                         | Thumbnail size (pixels)                |
 | `--font-path`       | `/System/Library/Fonts/HelveticaNeue.ttc`     | Path to font file                      |
@@ -132,4 +132,14 @@ And then run the script with 11 as grid-cols argument:
 
 ```bash
 python3 messier-catalog.py --grid-cols 11
+```
+
+- How can I get a big resolution for printing it?
+
+Increase the "thumb-size" value which is the resolution of each small square. Default value is 300 but you can use any value, the total width of the image will be `thumb-size * grid_cols + 2 * padding`.
+
+Also use a lossless compression like PNG or TIF:
+
+```bash
+python3 messier-catalog.py --thumb-size 600 --output-file mosaic.png
 ```
