@@ -12,7 +12,7 @@ def draw_progress(draw, text, font, col, row, padding, thumb_size):
     tw = bbox[2] - bbox[0]
     th = bbox[3] - bbox[1]
     draw.text(
-        (x + (thumb_size - tw) // 2, y + (thumb_size - th) // 2),
+        (x + (thumb_size * 2 - tw) // 2, y + (thumb_size - th) // 2),
         text,
         fill="white",
         font=font

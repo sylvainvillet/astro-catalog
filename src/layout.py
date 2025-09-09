@@ -20,6 +20,9 @@ def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
     for c in range(grid_cols):
         occupied[0][c] = True
 
+    # Draw overall rectangle
+    draw.rectangle([padding, padding + thumb_size, padding + grid_cols * thumb_size, padding + grid_rows * thumb_size], outline="gray", width=1)
+
     def place_object(num, col, row, col_span=1, row_span=1):
         """Place an image or placeholder at the given slot and mark occupied cells."""
         slot_w = col_span * thumb_size

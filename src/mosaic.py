@@ -5,13 +5,14 @@ from src.utils import load_images, open_with_default_viewer
 from src.catalog import Catalog
 
 def build_mosaic(args, layout_map, catalog):
-    catalog_count = catalog.count()
+    # Load individual images
     images = load_images(args.input_folder, args.thumb_size, catalog.prefix())
 
+    # Create output image
+    catalog_count = catalog.count()
     grid_rows = compute_grid_rows(args.grid_cols, layout_map, catalog_count)
     mosaic_w = args.grid_cols * args.thumb_size + 2 * args.padding
     mosaic_h = grid_rows * args.thumb_size + 2 * args.padding
-
     mosaic = Image.new("RGB", (mosaic_w, mosaic_h), "black")
     draw = ImageDraw.Draw(mosaic)
 
@@ -25,11 +26,12 @@ def build_mosaic(args, layout_map, catalog):
     draw_title(draw, catalog.title(), title_font, mosaic_w, args.thumb_size, args.padding)
     draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog)
 
+    # Show progress if not completed
     images_count = len(images)
     if images_count < catalog_count:
-        progress_text = f"{images_count} / {catalog_count}"
-        draw_progress(draw, progress_text, font, args.grid_cols - 1, grid_rows - 1, args.padding, args.thumb_size)
+        progress_text = f"Progress: {images_count} / {catalog_count}"
+        draw_progress(draw, progress_text, font, args.grid_cols - 2, grid_rows - 1, args.padding, args.thumb_size)
 
-    mosaic.save(args.output_file, format="JPEG", quality=100, optimize=True)
+    mosaic.save(args.output_file)
     print(f"Saved {args.output_file}")
     open_with_default_viewer(args.output_file)
