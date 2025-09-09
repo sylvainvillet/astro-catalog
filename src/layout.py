@@ -30,14 +30,11 @@ def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
         x = col * thumb_size + padding
         y = row * thumb_size + padding
 
-        # Draw border first
-        draw.rectangle([x, y, x + slot_w, y + slot_h], outline="gray", width=1)
-
         # Place image or placeholder
         if num in images:
             img = ImageOps.fit(
                 images[num],
-                (slot_w - 1, slot_h - 1),
+                (slot_w, slot_h),
                 Image.LANCZOS,
                 centering=(0.5, 0.5)
             )
@@ -64,6 +61,9 @@ def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
                 fill="white",
                 font=font
             )
+
+        # Draw border
+        draw.rectangle([x, y, x + slot_w, y + slot_h], outline="gray", width=1)
 
         # Mark cells as occupied
         for r in range(row, row + row_span):

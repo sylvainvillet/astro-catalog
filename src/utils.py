@@ -15,7 +15,6 @@ def load_images(input_folder, thumb_size, prefix):
         path = os.path.join(input_folder, fname)
         try:
             img = Image.open(path).convert("RGB")
-            img = ImageOps.fit(img, (thumb_size, thumb_size), Image.LANCZOS, centering=(0.5, 0.5))
             images[num] = img
         except Exception as e:
             print(f"Error loading {fname}: {e}")
