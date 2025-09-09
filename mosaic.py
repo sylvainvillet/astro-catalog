@@ -36,7 +36,7 @@ def compute_grid_rows(grid_cols, layout_map, total=110):
 grid_rows = compute_grid_rows(grid_cols, layout_map)
 
 # --- LOAD IMAGES ---
-pattern = re.compile(r"M(\d+)_")
+pattern = re.compile(r"M[-_]?(\d+)")
 images = {}
 for fname in os.listdir(input_folder):
     match = pattern.match(fname)
