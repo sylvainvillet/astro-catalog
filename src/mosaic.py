@@ -4,7 +4,11 @@ from src.drawing import draw_title, draw_progress
 from src.utils import load_images, open_with_default_viewer
 from src.catalog import Catalog
 
+__version__ = "1.0.0"
+
 def build_mosaic(args, layout_map, catalog):
+    print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
+
     # Load individual images
     images = load_images(args.input_folder, args.thumb_size, catalog.prefix())
 
