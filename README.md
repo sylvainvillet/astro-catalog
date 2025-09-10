@@ -40,7 +40,9 @@ https://www.python.org/downloads/
 pip install pillow
 ````
 
-3. Clone or Download the project (Code -> Download ZIP)
+3. Clone or Download the latest release:
+
+https://github.com/sylvainvillet/astro-catalog/releases
    
 ---
 
