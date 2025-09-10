@@ -55,7 +55,7 @@ Copy your images to the `messier_images/` or `caldwell_images/` folders and ensu
 * `C 45.jpeg`
 * `C_66_123x60s.tif`
 
-Then open a terminal and run:
+Then open a terminal in the `astro-catalog` folder and run:
 
 ```bash
 python3 messier-catalog.py
