@@ -5,7 +5,7 @@ import re
 from PIL import Image, ImageOps
 
 def load_images(input_folder, thumb_size, prefix):
-    pattern = re.compile(prefix + r"[-_]?(\d+)")
+    pattern = re.compile(prefix + r"[ _-]?(\d+)")
     images = {}
     for fname in os.listdir(input_folder):
         match = pattern.match(fname)
