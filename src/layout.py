@@ -1,14 +1,23 @@
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from argparse import Namespace
 from src.catalog import Catalog
+from PIL import Image, ImageDraw, ImageFont, ImageOps
 
-def compute_grid_rows(grid_cols, layout_map, total):
+def compute_grid_rows(grid_cols: int, 
+                      layout_map: dict[int, tuple[int, int, int, int]], 
+                      total: int) -> int:
     special_cells = sum(cs * rs for (_, _, cs, rs) in layout_map.values())
     normal_cells = total - len(layout_map)
     total_cells = special_cells + normal_cells
     return -(-total_cells // grid_cols) + 1  # ceil division, +1 for title
 
-
-def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
+def draw_grid(draw: ImageDraw.ImageDraw, 
+              mosaic: Image.Image, 
+              font: ImageFont.ImageFont | ImageFont.FreeTypeFont, 
+              args: Namespace, 
+              grid_rows: int, 
+              layout_map: dict[int, tuple[int, int, int, int]], 
+              images: dict[int, Image.Image], 
+              catalog: Catalog):
     thumb_size = args.thumb_size
     padding = args.padding
     grid_cols = args.grid_cols
@@ -23,7 +32,7 @@ def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
     # Draw overall rectangle
     draw.rectangle([padding, padding + thumb_size, padding + grid_cols * thumb_size, padding + grid_rows * thumb_size], outline="gray", width=1)
 
-    def place_object(num, col, row, col_span=1, row_span=1):
+    def place_object(num: int, col: int, row: int, col_span: int = 1, row_span: int = 1):
         """Place an image or placeholder at the given slot and mark occupied cells."""
         slot_w = col_span * thumb_size
         slot_h = row_span * thumb_size
@@ -35,7 +44,7 @@ def draw_grid(draw, mosaic, font, args, grid_rows, layout_map, images, catalog):
             img = ImageOps.fit(
                 images[num],
                 (slot_w, slot_h),
-                Image.LANCZOS,
+                Image.Resampling.LANCZOS,
                 centering=(0.5, 0.5)
             )
             mosaic.paste(img, (x + 1, y + 1))

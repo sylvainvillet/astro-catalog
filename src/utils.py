@@ -4,7 +4,7 @@ import subprocess
 import re
 from PIL import Image, ImageOps
 
-def load_images(input_folder, thumb_size, prefix):
+def load_images(input_folder: str, thumb_size: int, prefix: str) -> dict[int, Image.Image]:
     pattern = re.compile(prefix + r"[ _-]?(\d+)")
     images = {}
     for fname in os.listdir(input_folder):
@@ -22,10 +22,10 @@ def load_images(input_folder, thumb_size, prefix):
     print(f"Loaded {len(images)} image(s)")
     return images
 
-def open_with_default_viewer(path):
+def open_with_default_viewer(path: str):
     if sys.platform.startswith("darwin"):      # macOS
         subprocess.run(["open", path])
     elif sys.platform.startswith("win"):       # Windows
-        os.startfile(path)
+        subprocess.run(["start", "", path], shell=True)
     elif sys.platform.startswith("linux"):     # Linux
         subprocess.run(["xdg-open", path])

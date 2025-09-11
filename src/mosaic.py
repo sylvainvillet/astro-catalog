@@ -8,6 +8,8 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
     from PIL import Image, ImageDraw, ImageFont, ImageOps
 
+from typing import Dict, Any
+from argparse import Namespace
 from src.layout import compute_grid_rows, draw_grid
 from src.drawing import draw_title, draw_progress
 from src.utils import load_images, open_with_default_viewer
@@ -15,7 +17,7 @@ from src.catalog import Catalog
 
 __version__ = "1.0.1"
 
-def build_mosaic(args, layout_map, catalog):
+def build_mosaic(args: Namespace, layout_map: dict[int, tuple[int, int, int, int]], catalog: Catalog):
     print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
 
     # Load individual images
