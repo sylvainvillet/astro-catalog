@@ -2,11 +2,13 @@ import os
 import sys
 import subprocess
 import re
-from PIL import Image, ImageOps
+from PIL import Image
 
-def load_images(input_folder, thumb_size, prefix):
+# Load images from the input folder with a name that starts with 'prefix' and followed by a number
+# Returns a dictionary mapping the number to the Image object
+def load_images(input_folder: str, prefix: str) -> dict[int, Image.Image]:
     pattern = re.compile(prefix + r"[ _-]?(\d+)")
-    images = {}
+    images: dict[int, Image.Image] = {}
     for fname in os.listdir(input_folder):
         match = pattern.match(fname)
         if not match:
@@ -22,10 +24,11 @@ def load_images(input_folder, thumb_size, prefix):
     print(f"Loaded {len(images)} image(s)")
     return images
 
-def open_with_default_viewer(path):
+# Open a file with the default image viewer based on the OS
+def open_with_default_viewer(path: str):
     if sys.platform.startswith("darwin"):      # macOS
         subprocess.run(["open", path])
     elif sys.platform.startswith("win"):       # Windows
-        os.startfile(path)
+        subprocess.run(["start", "", path], shell=True)
     elif sys.platform.startswith("linux"):     # Linux
         subprocess.run(["xdg-open", path])

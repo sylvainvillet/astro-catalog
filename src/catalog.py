@@ -1,5 +1,6 @@
 from enum import Enum
 
+# Define the catalogs with their prefixes, titles, and counts
 class Catalog(Enum):
     MESSIER = ("M", "Messier Catalog", 110)
     CALDWELL = ("C", "Caldwell Catalog", 109)

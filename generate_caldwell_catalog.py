@@ -5,9 +5,9 @@ from src.catalog import Catalog
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate Caldwell Catalog")
-    parser.add_argument("--input-folder", default="caldwell_images")
-    parser.add_argument("--output-file", default="caldwell_catalog.jpg")
-    parser.add_argument("--title", default=Catalog.CALDWELL.title())
+    parser.add_argument("-i", "--input-folder", default="caldwell_images")
+    parser.add_argument("-o", "--output-file", default="caldwell_catalog.jpg")
+    parser.add_argument("-t", "--title", default=Catalog.CALDWELL.title())
     parser.add_argument("--grid-cols", type=int, default=17)
     parser.add_argument("--thumb-size", type=int, default=300)
     parser.add_argument("--font-path", default="/System/Library/Fonts/HelveticaNeue.ttc")
