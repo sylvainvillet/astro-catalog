@@ -14,7 +14,7 @@ from src.drawing import draw_title, draw_progress
 from src.utils import load_images, open_with_default_viewer
 from src.catalog import Catalog
 
-__version__ = "1.0.1"
+__version__ = "1.0.2"
 
 # Build the mosaic image based on the provided arguments, layout map, and catalog
 def build_mosaic(args: Namespace, layout_map: dict[int, tuple[int, int, int, int]], catalog: Catalog):
