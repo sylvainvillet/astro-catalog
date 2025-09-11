@@ -1,5 +1,6 @@
-from PIL import Image, ImageDraw, ImageFont
+from PIL import ImageDraw, ImageFont
 
+# Draw the title at the top center of the mosaic
 def draw_title(draw: ImageDraw.ImageDraw, 
                text: str, 
                font: ImageFont.ImageFont | ImageFont.FreeTypeFont, 
@@ -12,6 +13,7 @@ def draw_title(draw: ImageDraw.ImageDraw,
     y = padding + (title_row_height - th) // 2
     draw.text((x, y), text, fill="white", font=font)
 
+# Draw the progress text at the bottom right of the mosaic
 def draw_progress(draw: ImageDraw.ImageDraw, 
                   text: str, 
                   font: ImageFont.ImageFont | ImageFont.FreeTypeFont, 

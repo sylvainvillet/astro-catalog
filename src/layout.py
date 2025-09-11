@@ -2,6 +2,7 @@ from argparse import Namespace
 from src.catalog import Catalog
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
+# Compute the number of grid rows needed based on columns, layout map, and total items
 def compute_grid_rows(grid_cols: int, 
                       layout_map: dict[int, tuple[int, int, int, int]], 
                       total: int) -> int:
@@ -10,6 +11,7 @@ def compute_grid_rows(grid_cols: int,
     total_cells = special_cells + normal_cells
     return -(-total_cells // grid_cols) + 1  # ceil division, +1 for title
 
+# Draw the grid and place images according to the layout map
 def draw_grid(draw: ImageDraw.ImageDraw, 
               mosaic: Image.Image, 
               font: ImageFont.ImageFont | ImageFont.FreeTypeFont, 
