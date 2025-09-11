@@ -23,8 +23,8 @@ Perfect for creating a large-format print.
 
 Here’s a couple of in-progress examples:
 
-![Messier](messier_mosaic.jpg)
-![Caldwell](caldwell_mosaic.jpg)
+![Messier](messier_catalog.jpg)
+![Caldwell](caldwell_catalog.jpg)
 
 ---
 
@@ -54,13 +54,13 @@ Copy your images to the `messier_images/` or `caldwell_images/` folders and ensu
 Then open a terminal in the `astro-catalog` folder and run:
 
 ```bash
-python3 messier-catalog.py
+python3 generate_messier_catalog.py
 ```
 
 or
 
 ```bash
-python3 caldwell-catalog.py
+python3 generate_caldwell_catalog.py
 ```
 
 ---
@@ -69,7 +69,7 @@ python3 caldwell-catalog.py
 
 Some objects span much larger areas in the sky, so they are given multiple grid cells in the mosaic to better reflect their size:
 
-| Messier | Object               | Grid Position (col, row) | Span (cols × rows) |
+| Messier | Object               | Grid Position (col, row)  | Span (cols × rows) |
 |---------|----------------------|---------------------------|--------------------|
 | M8      | Lagoon Nebula        | (2, 1)                    | 2 × 2              |
 | M16     | Eagle Nebula         | (14, 1)                   | 2 × 2              |
@@ -80,7 +80,7 @@ Some objects span much larger areas in the sky, so they are given multiple grid 
 
 All other objects default to **1 × 1** cells and are auto-placed.
 
-You can customize this layout in `messier-catalog.py` inside the `messier_layout` dictionary, as well as their Caldwell counterparts.
+You can customize the Messier and Caldwell layouts in `user_settings.py` by adding, removing or modifying rows.
 
 ---
 
@@ -89,29 +89,29 @@ You can customize this layout in `messier-catalog.py` inside the `messier_layout
 All options have defaults but can be overridden:
 
 ```bash
-python3 messier-catalog.py --input-folder my_images --output-file mosaic.jpg --grid-cols 20
+python3 generate_messier_catalog.py --input-folder my_images --output-file mosaic.jpg --grid-cols 20
 ```
 
 Available arguments:
 
-| Option              | Default                                       | Description                            |
-| ------------------- | ----------------------------------------------| -------------------------------------- |
-| `--input-folder`    | `messier_images` or `caldwell_images`         | Folder containing Messier images       |
-| `--output-file`     | `messier_mosaic.jpg` or `caldwell_mosaic.jpg` | Output file path                       |
-| `--title`           | `Messier Catalog` or `Caldwell Catalog`       | Title                                  |
-| `--grid-cols`       | `17`                                          | Number of columns in the grid          |
-| `--thumb-size`      | `300`                                         | Thumbnail size (pixels)                |
-| `--font-path`       | `/System/Library/Fonts/HelveticaNeue.ttc`     | Path to font file                      |
-| `--font-size`       | `32`                                          | Font size for labels and placeholders  |
-| `--title-font-size` | `124`                                         | Font size for the title                |
-| `--padding`         | `20`                                          | Padding around the entire mosaic       |
+| Option              | Default                                         | Description                            |
+| ------------------- | ------------------------------------------------| -------------------------------------- |
+| `--input-folder`    | `messier_images` or `caldwell_images`           | Folder containing Messier images       |
+| `--output-file`     | `messier_catalog.jpg` or `caldwell_catalog.jpg` | Output file path                       |
+| `--title`           | `Messier Catalog` or `Caldwell Catalog`         | Title                                  |
+| `--grid-cols`       | `17`                                            | Number of columns in the grid          |
+| `--thumb-size`      | `300`                                           | Thumbnail size (pixels)                |
+| `--font-path`       | `/System/Library/Fonts/HelveticaNeue.ttc`       | Path to font file                      |
+| `--font-size`       | `32`                                            | Font size for labels and placeholders  |
+| `--title-font-size` | `124`                                           | Font size for the title                |
+| `--padding`         | `20`                                            | Padding around the entire mosaic       |
 
 ---
 
 ## Example
 
 ```bash
-python3 messier-catalog.py --grid-cols 20 --thumb-size 400 --output-file messier_large.png
+python3 generate_messier_catalog.py --grid-cols 20 --thumb-size 400 --output-file messier_large.png
 ```
 
 This creates a high-quality PNG 20-column mosaic with larger cells and saves it as `messier_large.png`.
@@ -127,14 +127,14 @@ You can crop your images with Photoshop, Gimp or other before running the script
 
 - How do I generate a Messier catalog on a 11x10 grid, with the same size for all the images?
 
-Edit the `messier_layout` in the file `messier-catalog.py` to remove all the rows like this:
+Edit the `messier_layout` in the file `user_settings.py` to remove all the rows like this:
 
 `messier_layout = {}`
 
 And then run the script with 11 as grid-cols argument:
 
 ```bash
-python3 messier-catalog.py --grid-cols 11
+python3 generate_messier_catalog.py --grid-cols 11
 ```
 
 - How can I get a big resolution for printing it?
@@ -144,5 +144,5 @@ Increase the "thumb-size" value which is the resolution of each small square. De
 Also use a lossless compression like PNG or TIF:
 
 ```bash
-python3 messier-catalog.py --thumb-size 600 --output-file mosaic.png
+python3 generate_messier_catalog.py --thumb-size 600 --output-file mosaic.png
 ```
