@@ -30,27 +30,23 @@ Here’s a couple of in-progress examples:
 
 ## Installation
 
-1. Install **Python 3**:
+1. Install **Python 3** from this link:
 
 https://www.python.org/downloads/
 
-2. Open a terminal and install **Pillow**:
-
-```bash
-pip install pillow
-````
-
-3. Clone or Download the latest release:
+2. Download the latest release:
 
 https://github.com/sylvainvillet/astro-catalog/releases
+
+3. Unzip it
    
 ---
 
 ## Usage
 
-Copy your images to the `messier_images/` or `caldwell_images/` folders and ensure they start by one letter (M for Messier, C for Caldwell) and then the number like these examples:
+Copy your images to the `messier_images/` or `caldwell_images/` folders and ensure that they start by one letter (M for Messier, C for Caldwell) and then the object number like these examples:
 
-* `M31.jpg`
+* `M31_final.jpg`
 * `M-42.png`
 * `C 45.jpeg`
 * `C_66_123x60s.tif`

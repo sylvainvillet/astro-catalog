@@ -1,10 +1,19 @@
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+# Ensure Pillow is installed
+try:
+    from PIL import Image, ImageDraw, ImageFont, ImageOps
+except ImportError:
+    import subprocess
+    import sys
+    print("Pillow not found. Installing...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
+    from PIL import Image, ImageDraw, ImageFont, ImageOps
+
 from src.layout import compute_grid_rows, draw_grid
 from src.drawing import draw_title, draw_progress
 from src.utils import load_images, open_with_default_viewer
 from src.catalog import Catalog
 
-__version__ = "1.0.0"
+__version__ = "1.0.1"
 
 def build_mosaic(args, layout_map, catalog):
     print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
