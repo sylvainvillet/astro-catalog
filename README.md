@@ -63,6 +63,8 @@ or
 python3 generate_caldwell_catalog.py
 ```
 
+Alternatively, you can right click on `generate_messier_catalog.py` or `generate_caldwell_catalog.py` and use Open With > Python Launcher.
+
 ---
 
 ## Special Layout for Bigger Targets
