@@ -1,13 +1,14 @@
 from argparse import Namespace
+from src.special_objects import SpecialObject
 from src.catalog import Catalog
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 # Compute the number of grid rows needed based on columns, layout map, and total items
 def compute_grid_rows(grid_cols: int, 
-                      layout_map: dict[int, tuple[int, int, int, int]], 
+                      special_objects: list[SpecialObject], 
                       total: int) -> int:
-    special_cells = sum(cs * rs for (_, _, cs, rs) in layout_map.values())
-    normal_cells = total - len(layout_map)
+    special_cells = sum(obj.cells() for obj in special_objects)
+    normal_cells = total - sum(obj.objects() for obj in special_objects)
     total_cells = special_cells + normal_cells
     return -(-total_cells // grid_cols) + 1  # ceil division, +1 for title
 
@@ -17,7 +18,7 @@ def draw_grid(draw: ImageDraw.ImageDraw,
               font: ImageFont.ImageFont | ImageFont.FreeTypeFont, 
               args: Namespace, 
               grid_rows: int, 
-              layout_map: dict[int, tuple[int, int, int, int]], 
+              special_objects: list[SpecialObject], 
               images: dict[int, Image.Image], 
               catalog: Catalog):
     thumb_size = args.thumb_size
@@ -34,25 +35,26 @@ def draw_grid(draw: ImageDraw.ImageDraw,
     # Draw overall rectangle
     draw.rectangle([padding, padding + thumb_size, padding + grid_cols * thumb_size, padding + grid_rows * thumb_size], outline="gray", width=1)
 
-    def place_object(num: int, col: int, row: int, col_span: int = 1, row_span: int = 1):
+    def place_object(numbers: list[int], col: int, row: int, col_span: int = 1, row_span: int = 1):
         """Place an image or placeholder at the given slot and mark occupied cells."""
         slot_w = col_span * thumb_size
         slot_h = row_span * thumb_size
         x = col * thumb_size + padding
         y = row * thumb_size + padding
+        name_text = ", ".join(catalog.prefix() + f"{num}" for num in numbers)
 
         # Place image or placeholder
-        if num in images:
+        if any(num in images for num in numbers):
+            image = next(img for num, img in images.items() if num in numbers)
             img = ImageOps.fit(
-                images[num],
+                image,
                 (slot_w, slot_h),
                 Image.Resampling.LANCZOS,
                 centering=(0.5, 0.5)
             )
             mosaic.paste(img, (x + 1, y + 1))
 
-            # Draw the name on the image (centered at the bottom)
-            name_text = catalog.prefix() + f"{num}"
+            # Draw the name on the image (centered at the bottom), list the names if multiple
             bbox = draw.textbbox((0, 0), name_text, font=font)
             tw = bbox[2] - bbox[0]
             th = bbox[3] - bbox[1]
@@ -62,13 +64,12 @@ def draw_grid(draw: ImageDraw.ImageDraw,
             draw.text((text_x, text_y), name_text, fill="white", font=font)
 
         else:
-            text = catalog.prefix() + f"{num}"
-            bbox = draw.textbbox((0, 0), text, font=font)
+            bbox = draw.textbbox((0, 0), name_text, font=font)
             tw = bbox[2] - bbox[0]
             th = bbox[3] - bbox[1]
             draw.text(
                 (x + (slot_w - tw) // 2, y + (slot_h - th) // 2),
-                text,
+                name_text,
                 fill="white",
                 font=font
             )
@@ -83,13 +84,13 @@ def draw_grid(draw: ImageDraw.ImageDraw,
                     occupied[r][c] = True
 
     # Place large objects first
-    for num, (col, row, col_span, row_span) in layout_map.items():
-        place_object(num, col, row+1, col_span, row_span) # Row +1 because title is in 1st row
+    for special in special_objects:
+        place_object(special.numbers, special.x, special.y, special.width, special.height)
 
     # Place remaining small objects
     for i in range(catalog.count()):
         num = i + 1
-        if num in layout_map:
+        if any(num in special.numbers for special in special_objects):
             continue  # already placed
 
         # Find first free 1x1 slot
@@ -97,7 +98,7 @@ def draw_grid(draw: ImageDraw.ImageDraw,
         for r in range(grid_rows):
             for c in range(grid_cols):
                 if not occupied[r][c]:
-                    place_object(num, c, r)
+                    place_object([num], c, r)
                     placed = True
                     break
             if placed:

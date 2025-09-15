@@ -30,7 +30,7 @@ Here’s a couple of in-progress examples:
 
 ## Installation
 
-1. Install **Python 3** from this link:
+1. Install **Python 3.10+** from this link:
 
 https://www.python.org/downloads/
 
@@ -71,14 +71,14 @@ Alternatively, you can right click on `generate_messier_catalog.py` or `generate
 
 Some objects span much larger areas in the sky, so they are given multiple grid cells in the mosaic to better reflect their size:
 
-| Messier | Object               | Grid Position (col, row)  | Span (cols × rows) |
-|---------|----------------------|---------------------------|--------------------|
-| M8      | Lagoon Nebula        | (2, 1)                    | 2 × 2              |
-| M16     | Eagle Nebula         | (14, 1)                   | 2 × 2              |
-| M31     | Andromeda Galaxy     | (7, 2)                    | 4 × 2              |
-| M33     | Triangulum Galaxy    | (1, 4)                    | 3 × 2              |
-| M42     | Orion Nebula         | (5, 5)                    | 2 × 2              |
-| M45     | Pleiades             | (13, 4)                   | 2 × 2              |
+| Messier        | Object               | Grid Position (col, row)  | Span (cols × rows) |
+|----------------|----------------------|---------------------------|--------------------|
+| M8, M20        | Lagoon/Trifid Nebula | (2, 2)                    | 2 × 3              |
+| M16            | Eagle Nebula         | (14, 2)                   | 2 × 2              |
+| M31, M32, M110 | Andromeda Galaxy     | (7, 2)                    | 4 × 2              |
+| M33            | Triangulum Galaxy    | (1, 6)                    | 3 × 2              |
+| M42, M43       | Orion Nebula         | (6, 5)                    | 2 × 3              |
+| M45            | Pleiades             | (13, 5)                   | 2 × 2              |
 
 All other objects default to **1 × 1** cells and are auto-placed.
 
