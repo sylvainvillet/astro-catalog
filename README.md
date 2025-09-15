@@ -12,6 +12,7 @@ Perfect for creating a large-format print.
 - Loads Messier or Caldwell object images from a folder (`M31.jpg`, `M-31.png`, `M_31.tif`, etc.)
 - Places objects on a grid with configurable **columns**, **thumbnail size**, and **layout overrides**
 - Supports **multi-cell slots** for large objects (e.g. M31, M42, M45)
+- Supports grouping **multiple objects** in one slot for objects close to each other (e.g. M42 and M43, M31 and M32)
 - Adds a **title** and **progress counter** if it's not completed yet
 - Draws **labels** on images and placeholders for missing ones
 - Adjustable **padding** around the mosaic
@@ -69,7 +70,8 @@ Alternatively, you can right click on `generate_messier_catalog.py` or `generate
 
 ## Special Layout for Bigger Targets
 
-Some objects span much larger areas in the sky, so they are given multiple grid cells in the mosaic to better reflect their size:
+Some objects span much larger areas in the sky, so they are given multiple grid cells in the mosaic to better reflect their size.
+Objects close to each other can also share the same slot:
 
 | Messier        | Object               | Grid Position (col, row)  | Span (cols × rows) |
 |----------------|----------------------|---------------------------|--------------------|
