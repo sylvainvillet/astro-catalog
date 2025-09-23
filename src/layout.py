@@ -1,6 +1,6 @@
-from argparse import Namespace
-from src.special_objects import SpecialObject
-from src.catalog import Catalog
+from special_objects import SpecialObject
+from catalog import Catalog
+from parameters import Parameters
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 
 # Compute the number of grid rows needed based on columns, layout map, and total items
@@ -16,14 +16,13 @@ def compute_grid_rows(grid_cols: int,
 def draw_grid(draw: ImageDraw.ImageDraw, 
               mosaic: Image.Image, 
               font: ImageFont.ImageFont | ImageFont.FreeTypeFont, 
-              args: Namespace, 
+              params: Parameters, 
               grid_rows: int, 
               special_objects: list[SpecialObject], 
-              images: dict[int, Image.Image], 
-              catalog: Catalog):
-    thumb_size = args.thumb_size
-    padding = args.padding
-    grid_cols = args.grid_cols
+              images: dict[int, Image.Image]):
+    thumb_size = params.get_thumb_size_scaled()
+    padding = params.get_padding_scaled()
+    grid_cols = params.grid_cols
 
     # Initialize occupancy grid
     occupied = [[False] * grid_cols for _ in range(grid_rows)]
@@ -41,7 +40,7 @@ def draw_grid(draw: ImageDraw.ImageDraw,
         slot_h = row_span * thumb_size
         x = col * thumb_size + padding
         y = row * thumb_size + padding
-        name_text = ", ".join(catalog.prefix() + f"{num}" for num in numbers)
+        name_text = ", ".join(params.catalog.prefix() + f"{num}" for num in numbers)
 
         # Place image or placeholder
         if any(num in images for num in numbers):
@@ -60,7 +59,7 @@ def draw_grid(draw: ImageDraw.ImageDraw,
             th = bbox[3] - bbox[1]
 
             text_x = x + (slot_w - tw) // 2
-            text_y = y + slot_h - th - 20  # 20px padding from bottom
+            text_y = y + slot_h - th - params.get_label_bottom_space_scaled()
             draw.text((text_x, text_y), name_text, fill="white", font=font)
 
         else:
@@ -88,7 +87,7 @@ def draw_grid(draw: ImageDraw.ImageDraw,
         place_object(special.numbers, special.x, special.y, special.width, special.height)
 
     # Place remaining small objects
-    for i in range(catalog.count()):
+    for i in range(params.catalog.count()):
         num = i + 1
         if any(num in special.numbers for special in special_objects):
             continue  # already placed

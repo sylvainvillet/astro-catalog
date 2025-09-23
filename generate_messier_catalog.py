@@ -2,6 +2,7 @@ import argparse
 from user_settings import messier_layout
 from src.mosaic import build_mosaic
 from src.catalog import Catalog
+from src.parameters import Parameters, parameters_from_args
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Generate Messier Catalog")
@@ -17,8 +18,8 @@ def parse_args():
     return parser.parse_args()
 
 def main():
-    args = parse_args()
-    build_mosaic(args, messier_layout, Catalog.MESSIER)
+    params = Parameters.parameters_from_args(parse_args(), Catalog.MESSIER, messier_layout)
+    build_mosaic(params, messier_layout, Catalog.MESSIER)
 
 if __name__ == "__main__":
     main()
