@@ -13,8 +13,6 @@ from drawing import draw_title, draw_progress
 from utils import load_images, open_with_default_viewer
 from parameters import Parameters
 
-__version__ = "1.1.0"
-
 def get_mosaic_dimensions(params: Parameters) -> tuple[int, int]:
     grid_rows = compute_grid_rows(params.grid_cols, params.layout, params.catalog.count())
     thumb_size_scaled = params.get_thumb_size_scaled()
@@ -25,8 +23,6 @@ def get_mosaic_dimensions(params: Parameters) -> tuple[int, int]:
 
 # Build the mosaic image based on the provided arguments, layout map, and catalog
 def build_mosaic(params: Parameters):
-    print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
-
     # Load individual images
     images: dict[int, Image.Image] = load_images(params.input_folder, params.catalog.prefix())
 

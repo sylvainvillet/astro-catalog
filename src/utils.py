@@ -7,6 +7,10 @@ from PIL import Image
 # Load images from the input folder with a name that starts with 'prefix' and followed by a number
 # Returns a dictionary mapping the number to the Image object
 def load_images(input_folder: str, prefix: str) -> dict[int, Image.Image]:
+    if not os.path.isdir(input_folder):
+        print(f"Error: '{input_folder}' is not a valid directory.")
+        return {}
+
     pattern = re.compile(prefix + r"[ _-]?(\d+)")
     images: dict[int, Image.Image] = {}
     for fname in os.listdir(input_folder):

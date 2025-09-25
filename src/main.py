@@ -4,6 +4,8 @@ from mosaic import build_mosaic, get_mosaic_dimensions
 from catalog import Catalog
 from special_objects import SpecialObject
 
+__version__ = "1.1.0"
+
 messier_layout: list[SpecialObject] = [
     SpecialObject(numbers=[8, 20],       x=2, y=2, width=2, height=3),   # Lagoon Nebula
     SpecialObject(numbers=[16],          x=14, y=2, width=2, height=2),  # Eagle Nebula
@@ -29,6 +31,10 @@ CALDWELL_PARAMETERS_KEY = "astro_catalog_parameters.caldwell"
 CATALOG_SELECTED_KEY = "astro_catalog_selected"
 
 def main(page: ft.Page):
+    print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
+
+    page.client_storage.clear()  # Uncomment to clear storage during development
+
     # Load parameters from client storage or use defaults   
     if page.client_storage.contains_key(MESSIER_PARAMETERS_KEY):  # True if the key exists
         data = page.client_storage.get(MESSIER_PARAMETERS_KEY)
@@ -104,7 +110,19 @@ def main(page: ft.Page):
         page.update()
 
     def generate(_):
+        if params.input_folder == "":
+            error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
+                                          content=ft.Text("Input folder is required."), 
+                                          actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
+            page.open(error_dialog)
+            return
+        
+        generate_button.disabled = True
+        generate_button.text = "Generating..."
+        page.update()
+
         build_mosaic(params)
+        
         # Save parameters to client storage
         if params.catalog == Catalog.MESSIER:
             page.client_storage.set(MESSIER_PARAMETERS_KEY, params.to_dict())
@@ -112,13 +130,16 @@ def main(page: ft.Page):
             page.client_storage.set(CALDWELL_PARAMETERS_KEY, params.to_dict())
         page.client_storage.set(CATALOG_SELECTED_KEY, params.catalog.prefix())
 
+        generate_button.disabled = False
+        generate_button.text = "Generate"
+        page.update()
+
     page.title = "Astro Catalog"
     #page.theme_mode = ft.ThemeMode.DARK
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
     input_folder_picker = ft.FilePicker(on_result=input_folder_result)
     page.overlay.append(input_folder_picker)
-    page.update()
     input_folder_field = ft.TextField(label="Input folder", 
                                       value=params.input_folder,
                                       expand=True,
@@ -126,7 +147,6 @@ def main(page: ft.Page):
     
     output_file_picker = ft.FilePicker(on_result=output_file_result)
     page.overlay.append(output_file_picker)
-    page.update()
     output_file_field = ft.TextField(label="Output file", 
                                      value=params.output_file,
                                      expand=True,
@@ -142,6 +162,12 @@ def main(page: ft.Page):
 
     output_resolution_label = ft.Text()
     refresh_resolution_label() 
+
+    generate_button = ft.ElevatedButton(
+        "Generate",
+        icon=ft.Icons.ROCKET,
+        on_click=generate,
+    )
 
     page.add(
         ft.Column([
@@ -172,10 +198,9 @@ def main(page: ft.Page):
             ft.Text("Scale:"),
             scale_slider,
             output_resolution_label,
-            ft.ElevatedButton(
-                "Generate",
-                icon=ft.Icons.ROCKET,
-                on_click=generate,
+            ft.Row([
+                generate_button,
+            ], alignment=ft.MainAxisAlignment.CENTER
             )
         ])
     )
