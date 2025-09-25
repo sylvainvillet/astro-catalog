@@ -15,19 +15,45 @@ messier_layout: list[SpecialObject] = [
 
 caldwell_layout: list[SpecialObject] = [
     SpecialObject(numbers=[20], x=1, y=1, width=3, height=2),   # North America Nebula
-    SpecialObject(numbers=[33], x=14, y=1, width=2, height=3),  # Veil Nebula
+    SpecialObject(numbers=[33], x=11, y=2, width=2, height=3),  # Veil Nebula
+    SpecialObject(numbers=[34], x=13, y=2, width=2, height=3),  # Veil Nebula
     SpecialObject(numbers=[68], x=7, y=2, width=2, height=2),   # Helix Nebula
     SpecialObject(numbers=[70], x=2, y=4, width=3, height=2),   # NGC 300
-    SpecialObject(numbers=[71], x=9, y=5, width=4, height=2),   # Large Magellanic Cloud
+    SpecialObject(numbers=[71], x=7, y=7, width=4, height=2),   # Large Magellanic Cloud
     SpecialObject(numbers=[72], x=0, y=7, width=3, height=2),   # Small Magellanic Cloud
     SpecialObject(numbers=[99], x=14, y=6, width=3, height=2),  # Coalsack Nebula
 ]
 
+MESSIER_PARAMETERS_KEY = "astro_catalog_parameters.messier"
+CALDWELL_PARAMETERS_KEY = "astro_catalog_parameters.caldwell"
+CATALOG_SELECTED_KEY = "astro_catalog_selected"
+
 def main(page: ft.Page):
-    params = Parameters(
-        layout=messier_layout,
-    )
-    catalog_prefix: str = Catalog.MESSIER.prefix()
+    # Load parameters from client storage or use defaults   
+    if page.client_storage.contains_key(MESSIER_PARAMETERS_KEY):  # True if the key exists
+        data = page.client_storage.get(MESSIER_PARAMETERS_KEY)
+        messier_params = Parameters.from_dict(data if data is not None else {})
+        messier_params.layout = messier_layout
+    else:
+        messier_params = Parameters(
+            layout=messier_layout,
+        )
+
+    if page.client_storage.contains_key(CALDWELL_PARAMETERS_KEY):  # True if the key exists
+        data = page.client_storage.get(CALDWELL_PARAMETERS_KEY)
+        caldwell_params = Parameters.from_dict(data if data is not None else {})
+        caldwell_params.layout = caldwell_layout
+    else:
+        caldwell_params = Parameters(
+            catalog=Catalog.CALDWELL,
+            layout=caldwell_layout
+        )
+
+    catalog_prefix = Catalog.MESSIER.prefix()
+    if page.client_storage.contains_key(CATALOG_SELECTED_KEY):  # True if the key exists
+        catalog_prefix = page.client_storage.get(CATALOG_SELECTED_KEY)
+    
+    params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
 
     def get_catalogs_options() -> list[ft.DropdownOption]:
         options: list[ft.DropdownOption] = []
@@ -41,12 +67,19 @@ def main(page: ft.Page):
         return options
     
     def catalog_changed(e: ft.ControlEvent):
-        catalog_prefix = e.control.value
-        params.catalog = next(cat for cat in Catalog if cat.prefix() == catalog_prefix)
+        nonlocal params, catalog_prefix, messier_params, caldwell_params
+        
+        # Save params values in the current params object
         if params.catalog == Catalog.MESSIER:
-            params.layout = messier_layout
+            messier_params = params
         elif params.catalog == Catalog.CALDWELL:
-            params.layout = caldwell_layout
+            caldwell_params = params
+        catalog_prefix = e.control.value
+        params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
+        input_folder_field.value = params.input_folder
+        output_file_field.value = params.output_file
+        scale_slider.value = params.scale
+        refresh_resolution_label()
         page.update()
 
     def input_folder_result(e: ft.FilePickerResultEvent):
@@ -72,8 +105,15 @@ def main(page: ft.Page):
 
     def generate(_):
         build_mosaic(params)
+        # Save parameters to client storage
+        if params.catalog == Catalog.MESSIER:
+            page.client_storage.set(MESSIER_PARAMETERS_KEY, params.to_dict())
+        elif params.catalog == Catalog.CALDWELL:
+            page.client_storage.set(CALDWELL_PARAMETERS_KEY, params.to_dict())
+        page.client_storage.set(CATALOG_SELECTED_KEY, params.catalog.prefix())
 
     page.title = "Astro Catalog"
+    #page.theme_mode = ft.ThemeMode.DARK
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
     input_folder_picker = ft.FilePicker(on_result=input_folder_result)
@@ -91,6 +131,14 @@ def main(page: ft.Page):
                                      value=params.output_file,
                                      expand=True,
                                      width=300)
+
+    scale_slider = ft.Slider(
+        value=params.scale,
+        min=1,
+        max=10,
+        divisions=9,
+        on_change=scale_changed
+    )
 
     output_resolution_label = ft.Text()
     refresh_resolution_label() 
@@ -120,14 +168,9 @@ def main(page: ft.Page):
                     on_click=lambda _: output_file_picker.save_file(),
                 )
             ]),
+            ft.Divider(),
             ft.Text("Scale:"),
-            ft.Slider(
-                value=params.scale,
-                min=1,
-                max=10,
-                divisions=9,
-                on_change=scale_changed
-            ),
+            scale_slider,
             output_resolution_label,
             ft.ElevatedButton(
                 "Generate",

@@ -1,4 +1,5 @@
-from dataclasses import dataclass, field
+import json
+from dataclasses import dataclass, field, asdict
 from catalog import Catalog
 from special_objects import SpecialObject
 import argparse
@@ -17,7 +18,7 @@ class Parameters:
     catalog: Catalog = Catalog.MESSIER
     layout: list[SpecialObject] = field(default_factory=list)
     grid_cols: int = 17
-    scale: float = 1.0
+    scale: float = 2.0
     font_path: str = "/System/Library/Fonts/HelveticaNeue.ttc"
 
     def get_thumb_size_scaled(self) -> int:
@@ -45,3 +46,28 @@ class Parameters:
             grid_cols=args.grid_cols,
             font_path=args.font_path,
         )
+
+    def to_dict(self) -> dict[str, str | int | float | list[SpecialObject]]:
+        d = asdict(self)
+        d["catalog"] = self.catalog.prefix()
+        #d["layout"] = [self.catalog.serialize_special_object(obj) for obj in self.layout]
+        return d
+
+    @classmethod
+    def from_dict(cls, d: dict[str, str | int | float | list[SpecialObject]]) -> "Parameters":
+        return cls(
+            input_folder=str(d.get("input_folder", "")),
+            output_file=str(d.get("output_file", "messier_catalog.jpg")),
+            catalog=Catalog.from_prefix(str(d.get("catalog", Catalog.MESSIER.prefix()))),
+            #layout=[SpecialObject(x) for x in d.get("layout", [])],
+            grid_cols=int(d["grid_cols"]) if "grid_cols" in d and not isinstance(d["grid_cols"], list) else 17,
+            scale=float(d["scale"]) if "scale" in d and not isinstance(d["scale"], list) else 3.0,
+            font_path=str(d.get("font_path", "/System/Library/Fonts/HelveticaNeue.ttc")),
+        )
+
+    def to_json(self) -> str:
+        return json.dumps(self.to_dict())
+
+    @classmethod
+    def from_json(cls, data: str) -> "Parameters":
+        return cls.from_dict(json.loads(data))

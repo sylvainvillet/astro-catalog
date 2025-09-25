@@ -161,3 +161,7 @@ cython_debug/
 
 # Flet
 storage/
+
+# Synology
+.DS_Store
+src/.DS_Store

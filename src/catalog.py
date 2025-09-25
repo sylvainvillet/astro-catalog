@@ -13,3 +13,10 @@ class Catalog(Enum):
 
     def count(self) -> int:
         return self.value[2]
+    
+    @staticmethod
+    def from_prefix(prefix: str) -> "Catalog":
+        for catalog in Catalog:
+            if catalog.prefix() == prefix:
+                return catalog
+        return Catalog.MESSIER  # Default to MESSIER if not found
