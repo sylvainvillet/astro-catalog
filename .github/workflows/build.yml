@@ -32,6 +32,7 @@ jobs:
           pyinstaller src/main.py --noconsole --onefile --name astro-catalog
 
       - name: Prepare release artifacts
+        shell: bash
         run: |
           mkdir -p dist/release
           if [ -d "dist/astro-catalog.app" ]; then
