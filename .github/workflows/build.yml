@@ -30,12 +30,7 @@ jobs:
       - name: Build desktop app
         run: |
           mkdir -p dist
-          flet pack src/main.py \
-            --name astro-catalog \
-            --icon src/assets/icon.png \
-            --product-name "Astro Catalog" \
-            --product-version "${GITHUB_REF_NAME#v}" \
-            --copyright "Copyright (c) 2025 Sylvain Villet"
+          flet pack src/main.py --name astro-catalog --icon src/assets/icon.png --product-name "Astro Catalog" --product-version "${GITHUB_REF_NAME#v}" --copyright "Copyright (c) 2025 Sylvain Villet"
 
       - name: Package binaries
         shell: bash
