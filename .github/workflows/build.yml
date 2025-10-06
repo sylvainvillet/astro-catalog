@@ -3,7 +3,7 @@ name: Build and Release astro-catalog
 on:
   push:
     tags:
-      - "v*"   # Trigger when you push a tag like v1.0.0
+      - "v*"   # e.g. v2.0.0
 
 jobs:
   build:
@@ -11,7 +11,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
-        os: [ubuntu-latest, windows-latest, macos-latest]
+        os: [windows-latest, macos-latest, ubuntu-latest]
 
     steps:
       - name: Checkout repository
@@ -25,38 +25,56 @@ jobs:
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          pip install "flet[all]==0.28.3" pyinstaller -r requirements.txt
+          pip install "flet[all]==0.28.3" -r requirements.txt
 
-      - name: Build executable
+      - name: Build desktop app
         run: |
-          pyinstaller src/main.py --onefile --name astro-catalog
-      - name: Prepare release artifacts
+          mkdir -p dist
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            flet pack src/main.py \
+              --name astro-catalog \
+              --icon assets/icon.png \
+              --product-name "Astro Catalog" \
+              --product-version "${GITHUB_REF_NAME#v}" \
+              --copyright "Copyright (c) 2025 Sylvain Villet"
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            flet pack src/main.py \
+              --name astro-catalog \
+              --icon assets/icon.png \
+              --product-name "Astro Catalog" \
+              --product-version "${GITHUB_REF_NAME#v}" \
+              --copyright "Copyright (c) 2025 Sylvain Villet"
+          else
+            flet pack src/main.py \
+              --name astro-catalog \
+              --icon assets/icon.png \
+              --product-name "Astro Catalog" \
+              --product-version "${GITHUB_REF_NAME#v}" \
+              --copyright "Copyright (c) 2025 Sylvain Villet"
+          fi
+
+      - name: Package binaries
+        shell: bash
         run: |
           mkdir -p dist/release
           if [[ "$RUNNER_OS" == "Windows" ]]; then
-            powershell Compress-Archive -Path dist/astro-catalog.exe -DestinationPath dist/astro-catalog-windows.zip
-          elif [[ -d "dist/astro-catalog.app" ]]; then
-            cd dist
-            zip -r astro-catalog-macos.zip astro-catalog.app
-            cd ..
-          elif [[ -f "dist/astro-catalog" ]]; then
-            cd dist
-            zip astro-catalog-linux.zip astro-catalog
-            cd ..
+            7z a dist/release/astro-catalog-windows.zip dist/*.exe
+          elif [[ "$RUNNER_OS" == "macOS" ]]; then
+            tar -czvf dist/release/astro-catalog-macos.tar.gz -C dist *.app
+          else
+            tar -czvf dist/release/astro-catalog-linux.tar.gz -C dist astro-catalog
           fi
-        shell: bash
 
-      - name: Upload artifact
+      - name: Upload build artifact
         uses: actions/upload-artifact@v4
         with:
           name: astro-catalog-${{ matrix.os }}
-          path: dist/*.zip
+          path: dist/release/*
 
   release:
     name: Publish GitHub Release
     needs: build
     runs-on: ubuntu-latest
-
     steps:
       - name: Download all build artifacts
         uses: actions/download-artifact@v4
@@ -68,4 +86,4 @@ jobs:
         with:
           files: dist/**/*.zip
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.GH_PAT }}  # use PAT, not the default token
