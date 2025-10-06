@@ -14,7 +14,7 @@ LABEL_BOTTOM_SPACE = 7
 @dataclass
 class Parameters:
     input_folder: str = ""
-    output_file: str = "messier_catalog.jpg"
+    output_file: str = ""
     catalog: Catalog = Catalog.MESSIER
     layout: list[SpecialObject] = field(default_factory=list)
     grid_cols: int = 17

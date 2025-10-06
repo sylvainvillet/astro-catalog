@@ -32,8 +32,9 @@ CATALOG_SELECTED_KEY = "astro_catalog_selected"
 
 def main(page: ft.Page):
     print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
-
-    page.client_storage.clear()  # Uncomment to clear storage during development
+    
+    # Uncomment to clear storage during development
+    # page.client_storage.clear()  
 
     # Load parameters from client storage or use defaults   
     if page.client_storage.contains_key(MESSIER_PARAMETERS_KEY):  # True if the key exists
@@ -42,6 +43,7 @@ def main(page: ft.Page):
         messier_params.layout = messier_layout
     else:
         messier_params = Parameters(
+            output_file="messier_catalog.png",
             layout=messier_layout,
         )
 
@@ -51,6 +53,7 @@ def main(page: ft.Page):
         caldwell_params.layout = caldwell_layout
     else:
         caldwell_params = Parameters(
+            output_file="caldwell_catalog.png",
             catalog=Catalog.CALDWELL,
             layout=caldwell_layout
         )
@@ -89,11 +92,21 @@ def main(page: ft.Page):
         page.update()
 
     def input_folder_result(e: ft.FilePickerResultEvent):
+        # Check if path is empty
+        if not e.path:
+            return
         input_folder_field.value = e.path
         params.input_folder = e.path or ""
         input_folder_field.update()
 
     def output_file_result(e: ft.FilePickerResultEvent):
+        # Check if path is empty or has a valid image extension
+        if not e.path or not e.path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff')):
+            error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
+                                          content=ft.Text("Please select a valid output file with .png, .jpg, .jpeg, or .tiff extension."), 
+                                          actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
+            page.open(error_dialog)
+            return
         output_file_field.value = e.path
         params.output_file = e.path or ""
         output_file_field.update()
@@ -113,6 +126,14 @@ def main(page: ft.Page):
         if params.input_folder == "":
             error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
                                           content=ft.Text("Input folder is required."), 
+                                          actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
+            page.open(error_dialog)
+            return
+        
+        # Check if path is empty or has a valid image extension
+        if not params.output_file or not params.output_file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff')):
+            error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
+                                          content=ft.Text("Please select a valid output file with .png, .jpg, .jpeg, or .tiff extension."), 
                                           actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
             page.open(error_dialog)
             return
@@ -140,17 +161,23 @@ def main(page: ft.Page):
 
     input_folder_picker = ft.FilePicker(on_result=input_folder_result)
     page.overlay.append(input_folder_picker)
-    input_folder_field = ft.TextField(label="Input folder", 
+    input_folder_field = ft.TextField(label="Images folder", 
                                       value=params.input_folder,
                                       expand=True,
-                                      width=300)
+                                      width=300,
+                                      text_size=12,
+                                      helper_text="Folder containing images (e.g., messier_images)",
+                                      on_change=lambda e: setattr(params, "input_folder", e.control.value))
     
     output_file_picker = ft.FilePicker(on_result=output_file_result)
     page.overlay.append(output_file_picker)
     output_file_field = ft.TextField(label="Output file", 
                                      value=params.output_file,
                                      expand=True,
-                                     width=300)
+                                     width=300,
+                                     text_size=12,
+                                     helper_text="File must have .png, .jpg, .jpeg, or .tiff extension",
+                                     on_change=lambda e: setattr(params, "output_file", e.control.value))
 
     scale_slider = ft.Slider(
         value=params.scale,
@@ -171,6 +198,14 @@ def main(page: ft.Page):
 
     page.add(
         ft.Column([
+            ft.Row([
+                ft.Column([
+                    ft.Text("Astro Catalog", style=ft.TextStyle(size=30, weight=ft.FontWeight.BOLD)),
+                    ft.Text("Select a catalog and specify the input folder and output file.", style=ft.TextStyle(size=14)),
+                    ft.Text(f"Created by Sylvain Villet (v{__version__})", style=ft.TextStyle(size=12)),
+                ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+            ], alignment=ft.MainAxisAlignment.CENTER),
+            ft.Divider(),
             ft.Dropdown(
                 editable=True,
                 label="Catalog",
@@ -178,6 +213,7 @@ def main(page: ft.Page):
                 value=catalog_prefix,
                 on_change=catalog_changed,
             ),
+            ft.Container(height=5),
             ft.Row([
                 input_folder_field,
                 ft.ElevatedButton(
@@ -186,6 +222,7 @@ def main(page: ft.Page):
                     on_click=lambda _: input_folder_picker.get_directory_path(),
                 )
             ]),
+            ft.Container(height=5),
             ft.Row([
                 output_file_field,
                 ft.ElevatedButton(
@@ -194,14 +231,14 @@ def main(page: ft.Page):
                     on_click=lambda _: output_file_picker.save_file(),
                 )
             ]),
+            ft.Container(height=5),
             ft.Divider(),
             ft.Text("Scale:"),
             scale_slider,
             output_resolution_label,
             ft.Row([
                 generate_button,
-            ], alignment=ft.MainAxisAlignment.CENTER
-            )
+            ], alignment=ft.MainAxisAlignment.CENTER)
         ])
     )
 
