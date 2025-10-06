@@ -33,21 +33,21 @@ jobs:
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             flet pack src/main.py \
               --name astro-catalog \
-              --icon assets/icon.png \
+              --icon src/assets/icon.png \
               --product-name "Astro Catalog" \
               --product-version "${GITHUB_REF_NAME#v}" \
               --copyright "Copyright (c) 2025 Sylvain Villet"
           elif [[ "$RUNNER_OS" == "macOS" ]]; then
             flet pack src/main.py \
               --name astro-catalog \
-              --icon assets/icon.png \
+              --icon src/assets/icon.png \
               --product-name "Astro Catalog" \
               --product-version "${GITHUB_REF_NAME#v}" \
               --copyright "Copyright (c) 2025 Sylvain Villet"
           else
             flet pack src/main.py \
               --name astro-catalog \
-              --icon assets/icon.png \
+              --icon src/assets/icon.png \
               --product-name "Astro Catalog" \
               --product-version "${GITHUB_REF_NAME#v}" \
               --copyright "Copyright (c) 2025 Sylvain Villet"
