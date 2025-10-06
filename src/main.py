@@ -166,7 +166,7 @@ def main(page: ft.Page):
                                       expand=True,
                                       width=300,
                                       text_size=12,
-                                      helper_text="Folder containing images (e.g., messier_images)",
+                                      helper_text="Folder containing your images (e.g., messier_images)",
                                       on_change=lambda e: setattr(params, "input_folder", e.control.value))
     
     output_file_picker = ft.FilePicker(on_result=output_file_result)
