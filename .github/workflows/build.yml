@@ -1,0 +1,62 @@
+name: Build and Release astro-catalog
+
+on:
+  push:
+    tags:
+      - "v*"   # Trigger when you push a tag like v1.0.0
+
+jobs:
+  build:
+    name: Build astro-catalog
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install flet pyinstaller -r requirements.txt
+
+      - name: Build executable
+        run: |
+          pyinstaller src/main.py --noconsole --onefile --name astro-catalog
+
+      - name: Archive build output
+        run: |
+          mkdir -p dist/release
+          cp dist/astro-catalog* dist/release/
+          cd dist && zip -r astro-catalog-${{ matrix.os }}.zip release
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: astro-catalog-${{ matrix.os }}
+          path: dist/astro-catalog-${{ matrix.os }}.zip
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Download all build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          files: dist/**/*.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
