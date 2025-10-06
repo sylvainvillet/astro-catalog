@@ -31,17 +31,32 @@ jobs:
         run: |
           pyinstaller src/main.py --noconsole --onefile --name astro-catalog
 
-      - name: Archive build output
+      - name: Prepare release artifacts
         run: |
           mkdir -p dist/release
-          cp dist/astro-catalog* dist/release/
-          cd dist && zip -r astro-catalog-${{ matrix.os }}.zip release
+          if [ -d "dist/astro-catalog.app" ]; then
+            # macOS: zip the .app bundle
+            echo "Zipping .app bundle..."
+            cd dist
+            zip -r astro-catalog-macos.zip astro-catalog.app
+            cd ..
+          elif [ -f "dist/astro-catalog.exe" ]; then
+            # Windows: zip the .exe file
+            cd dist
+            zip astro-catalog-windows.zip astro-catalog.exe
+            cd ..
+          elif [ -f "dist/astro-catalog" ]; then
+            # Linux: zip the binary
+            cd dist
+            zip astro-catalog-linux.zip astro-catalog
+            cd ..
+          fi
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
           name: astro-catalog-${{ matrix.os }}
-          path: dist/astro-catalog-${{ matrix.os }}.zip
+          path: dist/*.zip
 
   release:
     name: Publish GitHub Release
