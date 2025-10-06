@@ -4,7 +4,7 @@ from mosaic import build_mosaic, get_mosaic_dimensions
 from catalog import Catalog
 from special_objects import SpecialObject
 
-__version__ = "1.1.0"
+__version__ = "2.0.0"
 
 messier_layout: list[SpecialObject] = [
     SpecialObject(numbers=[8, 20],       x=2, y=2, width=2, height=3),   # Lagoon Nebula
