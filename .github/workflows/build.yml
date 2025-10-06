@@ -40,7 +40,6 @@ jobs:
       - name: Package binaries
         shell: bash
         run: |
-          mkdir -p dist/release
           if [[ "$RUNNER_OS" == "Windows" ]]; then
             powershell Compress-Archive -Path dist/astro-catalog.exe -DestinationPath dist/astro-catalog-windows.zip
           elif [[ -d "dist/astro-catalog.app" ]]; then
@@ -57,7 +56,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: astro-catalog-${{ matrix.os }}
-          path: dist/release/*
+          path: dist/*.zip
 
   release:
     name: Publish GitHub Release
