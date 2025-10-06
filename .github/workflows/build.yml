@@ -29,7 +29,7 @@ jobs:
 
       - name: Build executable
         run: |
-          pyinstaller src/main.py --noconsole --onefile --name astro-catalog
+          pyinstaller src/main.py --onefile --name astro-catalog
       - name: Prepare release artifacts
         run: |
           mkdir -p dist/release
