@@ -30,28 +30,21 @@ jobs:
       - name: Build executable
         run: |
           pyinstaller src/main.py --noconsole --onefile --name astro-catalog
-
       - name: Prepare release artifacts
-        shell: bash
         run: |
           mkdir -p dist/release
-          if [ -d "dist/astro-catalog.app" ]; then
-            # macOS: zip the .app bundle
-            echo "Zipping .app bundle..."
+          if [[ "$RUNNER_OS" == "Windows" ]]; then
+            powershell Compress-Archive -Path dist/astro-catalog.exe -DestinationPath dist/astro-catalog-windows.zip
+          elif [[ -d "dist/astro-catalog.app" ]]; then
             cd dist
             zip -r astro-catalog-macos.zip astro-catalog.app
             cd ..
-          elif [ -f "dist/astro-catalog.exe" ]; then
-            # Windows: zip the .exe file
-            cd dist
-            zip astro-catalog-windows.zip astro-catalog.exe
-            cd ..
-          elif [ -f "dist/astro-catalog" ]; then
-            # Linux: zip the binary
+          elif [[ -f "dist/astro-catalog" ]]; then
             cd dist
             zip astro-catalog-linux.zip astro-catalog
             cd ..
           fi
+        shell: bash
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
