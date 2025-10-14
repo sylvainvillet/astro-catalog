@@ -22,7 +22,7 @@ def get_mosaic_dimensions(params: Parameters) -> tuple[int, int]:
     return mosaic_w, mosaic_h
 
 # Build the mosaic image based on the provided arguments, layout map, and catalog
-def build_mosaic(params: Parameters):
+def build_mosaic(params: Parameters) -> Image.Image:
     # Load individual images
     images: dict[int, Image.Image] = load_images(params.input_folder, params.catalog.prefix())
 
@@ -66,4 +66,4 @@ def build_mosaic(params: Parameters):
 
     mosaic.save(params.output_file)
     print(f"Saved {params.output_file}")
-    open_with_default_viewer(params.output_file)
+    return mosaic

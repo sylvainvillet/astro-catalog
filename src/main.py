@@ -1,8 +1,19 @@
+# Ensure Pillow is installed
+try:
+    from PIL import Image
+except ImportError:
+    import subprocess
+    import sys
+    print("Pillow not found. Installing...")
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
+    from PIL import Image
+
 import flet as ft
 from parameters import Parameters
 from mosaic import build_mosaic, get_mosaic_dimensions
 from catalog import Catalog
 from special_objects import SpecialObject
+from utils import pil_to_base64
 
 __version__ = "2.0.0"
 
@@ -65,6 +76,7 @@ def main(page: ft.Page):
         catalog_prefix = page.client_storage.get(CATALOG_SELECTED_KEY)
     
     params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
+    pil_image: Image.Image
 
     def get_catalogs_options() -> list[ft.DropdownOption]:
         options: list[ft.DropdownOption] = []
@@ -88,9 +100,10 @@ def main(page: ft.Page):
         catalog_prefix = e.control.value
         params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
         input_folder_field.value = params.input_folder
-        output_file_field.value = params.output_file
+        title_field.value = params.title
         scale_slider.value = params.scale
         refresh_resolution_label()
+        generate(None)
         page.update()
 
     def input_folder_result(e: ft.FilePickerResultEvent):
@@ -100,18 +113,6 @@ def main(page: ft.Page):
         input_folder_field.value = e.path
         params.input_folder = e.path or ""
         input_folder_field.update()
-
-    def output_file_result(e: ft.FilePickerResultEvent):
-        # Check if path is empty or has a valid image extension
-        if not e.path or not e.path.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff')):
-            error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
-                                          content=ft.Text("Please select a valid output file with .png, .jpg, .jpeg, or .tiff extension."), 
-                                          actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
-            page.open(error_dialog)
-            return
-        output_file_field.value = e.path
-        params.output_file = e.path or ""
-        output_file_field.update()
 
     def scale_changed(e: ft.ControlEvent):
         params.scale = e.control.value
@@ -125,6 +126,8 @@ def main(page: ft.Page):
         page.update()
 
     def generate(_):
+        nonlocal pil_image
+
         if params.input_folder == "":
             error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
                                           content=ft.Text("Input folder is required."), 
@@ -140,11 +143,15 @@ def main(page: ft.Page):
             page.open(error_dialog)
             return
         
-        generate_button.disabled = True
-        generate_button.text = "Generating..."
+        buttons_row.disabled = True
+        container.controls[0] = placeholder  # loading indicator
         page.update()
 
-        build_mosaic(params)
+        pil_image = build_mosaic(params)
+        output_image = ft.Image(src_base64=pil_to_base64(pil_image), 
+                                fit=ft.ImageFit.CONTAIN, 
+                                expand=True)
+        container.controls[0] = output_image  # put back image
         
         # Save parameters to client storage
         if params.catalog == Catalog.MESSIER:
@@ -153,11 +160,32 @@ def main(page: ft.Page):
             page.client_storage.set(CALDWELL_PARAMETERS_KEY, params.to_dict())
         page.client_storage.set(CATALOG_SELECTED_KEY, params.catalog.prefix())
 
-        generate_button.disabled = False
-        generate_button.text = "Generate"
+        buttons_row.disabled = False
         page.update()
 
+    def save_image(_):
+        if pil_image:
+            # Extract folder and file name from output_file
+            file_name = params.output_file.split("/")[-1]
+            initial_directory = "/".join(params.output_file.split("/")[:-1])
+            output_file_picker.save_file(file_name=file_name, 
+                                         initial_directory=initial_directory, 
+                                         allowed_extensions=[".png", ".jpg", ".jpeg", ".tiff"])
+
+    def output_file_result(e: ft.FilePickerResultEvent):
+        # Check if path is empty
+        if not e.path:
+            return
+        params.output_file = e.path or ""
+        if pil_image:
+            pil_image.save(params.output_file)
+            success_dialog = ft.AlertDialog(title=ft.Text("Success"), 
+                                            content=ft.Text(f"Image saved successfully."), 
+                                            actions=[ft.TextButton("OK", on_click=lambda e: page.close(success_dialog))])
+            page.open(success_dialog)
+
     page.title = "Astro Catalog"
+    page.window.maximized = True
     #page.theme_mode = ft.ThemeMode.DARK
     page.vertical_alignment = ft.MainAxisAlignment.CENTER
 
@@ -168,18 +196,10 @@ def main(page: ft.Page):
                                       expand=True,
                                       width=300,
                                       text_size=12,
-                                      helper_text="Folder containing your images (e.g., messier_images)",
                                       on_change=lambda e: setattr(params, "input_folder", e.control.value))
     
     output_file_picker = ft.FilePicker(on_result=output_file_result)
     page.overlay.append(output_file_picker)
-    output_file_field = ft.TextField(label="Output file", 
-                                     value=params.output_file,
-                                     expand=True,
-                                     width=300,
-                                     text_size=12,
-                                     helper_text="File must have .png, .jpg, .jpeg, or .tiff extension",
-                                     on_change=lambda e: setattr(params, "output_file", e.control.value))
 
     title_field = ft.TextField(label="Title", 
                                 value=params.title,
@@ -200,57 +220,57 @@ def main(page: ft.Page):
     refresh_resolution_label() 
 
     generate_button = ft.ElevatedButton(
-        "Generate",
-        icon=ft.Icons.ROCKET,
+        "Refresh",
+        icon=ft.Icons.REFRESH,
         on_click=generate,
     )
+    save_button = ft.ElevatedButton(
+        "Save",
+        icon=ft.Icons.SAVE,
+        on_click=save_image,
+    )
+    buttons_row = ft.Row([generate_button, save_button], alignment=ft.MainAxisAlignment.CENTER)
+
+    placeholder = ft.ProgressRing(width=50, height=50)
+    container = ft.Column([placeholder], expand=True, alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
+
+    left_panel = ft.Column([
+                    ft.Row([
+                        ft.Column([
+                            ft.Text("Astro Catalog", style=ft.TextStyle(size=30, weight=ft.FontWeight.BOLD)),
+                            ft.Text("Select a catalog and specify the input folder and output file.", style=ft.TextStyle(size=14)),
+                            ft.Text(f"Created by Sylvain Villet (v{__version__})", style=ft.TextStyle(size=12)),
+                        ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
+                    ], alignment=ft.MainAxisAlignment.CENTER),
+                    ft.Dropdown(
+                        editable=True,
+                        label="Catalog",
+                        options=get_catalogs_options(),
+                        value=catalog_prefix,
+                        on_change=catalog_changed,
+                    ),
+                    ft.Row([
+                        input_folder_field,
+                        ft.ElevatedButton(
+                            "Browse",
+                            icon=ft.Icons.FOLDER,
+                            on_click=lambda _: input_folder_picker.get_directory_path(),
+                        )
+                    ]),
+                    title_field,
+                    ft.Text("Scale:"),
+                    scale_slider,
+                    output_resolution_label,
+                    buttons_row
+                ], scroll=ft.ScrollMode.AUTO)
 
     page.add(
-        ft.Column([
             ft.Row([
-                ft.Column([
-                    ft.Text("Astro Catalog", style=ft.TextStyle(size=30, weight=ft.FontWeight.BOLD)),
-                    ft.Text("Select a catalog and specify the input folder and output file.", style=ft.TextStyle(size=14)),
-                    ft.Text(f"Created by Sylvain Villet (v{__version__})", style=ft.TextStyle(size=12)),
-                ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
-            ], alignment=ft.MainAxisAlignment.CENTER),
-            ft.Divider(),
-            ft.Dropdown(
-                editable=True,
-                label="Catalog",
-                options=get_catalogs_options(),
-                value=catalog_prefix,
-                on_change=catalog_changed,
-            ),
-            ft.Container(height=5),
-            ft.Row([
-                input_folder_field,
-                ft.ElevatedButton(
-                    "Browse",
-                    icon=ft.Icons.FOLDER,
-                    on_click=lambda _: input_folder_picker.get_directory_path(),
-                )
-            ]),
-            ft.Container(height=5),
-            ft.Row([
-                output_file_field,
-                ft.ElevatedButton(
-                    "Browse",
-                    icon=ft.Icons.IMAGE,
-                    on_click=lambda _: output_file_picker.save_file(),
-                )
-            ]),
-            ft.Container(height=5),
-            ft.Divider(),
-            title_field,
-            ft.Container(height=5),
-            ft.Text("Scale:"),
-            scale_slider,
-            output_resolution_label,
-            ft.Row([
-                generate_button,
-            ], alignment=ft.MainAxisAlignment.CENTER)
-        ])
+                left_panel,
+                container
+            ], vertical_alignment=ft.CrossAxisAlignment.START, alignment=ft.MainAxisAlignment.CENTER, expand=True)
     )
+
+    generate(None)  # Initial generation
 
 ft.app(main)

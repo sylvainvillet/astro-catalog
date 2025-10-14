@@ -3,6 +3,7 @@ import sys
 import subprocess
 import re
 from PIL import Image
+import io, base64
 
 # Load images from the input folder with a name that starts with 'prefix' and followed by a number
 # Returns a dictionary mapping the number to the Image object
@@ -36,3 +37,9 @@ def open_with_default_viewer(path: str):
         subprocess.run(["start", "", path], shell=True)
     elif sys.platform.startswith("linux"):     # Linux
         subprocess.run(["xdg-open", path])
+
+# Convert a Pillow Image to base64 string for Flet.
+def pil_to_base64(pil_image: Image.Image) -> str:
+    buffer = io.BytesIO()
+    pil_image.save(buffer, format="PNG")
+    return base64.b64encode(buffer.getvalue()).decode("utf-8")
