@@ -44,6 +44,7 @@ def main(page: ft.Page):
     else:
         messier_params = Parameters(
             output_file="messier_catalog.png",
+            title=Catalog.MESSIER.title(),
             layout=messier_layout,
         )
 
@@ -54,6 +55,7 @@ def main(page: ft.Page):
     else:
         caldwell_params = Parameters(
             output_file="caldwell_catalog.png",
+            title=Catalog.CALDWELL.title(),
             catalog=Catalog.CALDWELL,
             layout=caldwell_layout
         )
@@ -179,6 +181,13 @@ def main(page: ft.Page):
                                      helper_text="File must have .png, .jpg, .jpeg, or .tiff extension",
                                      on_change=lambda e: setattr(params, "output_file", e.control.value))
 
+    title_field = ft.TextField(label="Title", 
+                                value=params.title,
+                                expand=True,
+                                width=300,
+                                text_size=12,
+                                on_change=lambda e: setattr(params, "title", e.control.value))
+
     scale_slider = ft.Slider(
         value=params.scale,
         min=1,
@@ -233,6 +242,8 @@ def main(page: ft.Page):
             ]),
             ft.Container(height=5),
             ft.Divider(),
+            title_field,
+            ft.Container(height=5),
             ft.Text("Scale:"),
             scale_slider,
             output_resolution_label,

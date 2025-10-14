@@ -15,6 +15,7 @@ LABEL_BOTTOM_SPACE = 7
 class Parameters:
     input_folder: str = ""
     output_file: str = ""
+    title: str = ""
     catalog: Catalog = Catalog.MESSIER
     layout: list[SpecialObject] = field(default_factory=list)
     grid_cols: int = 17
@@ -41,6 +42,7 @@ class Parameters:
         return Parameters(
             input_folder=args.input_folder,
             output_file=args.output_file,
+            title=args.title,
             catalog=catalog,
             layout=layout,
             grid_cols=args.grid_cols,
@@ -58,6 +60,7 @@ class Parameters:
         return cls(
             input_folder=str(d.get("input_folder", "")),
             output_file=str(d.get("output_file", "messier_catalog.jpg")),
+            title=str(d.get("title", "")),
             catalog=Catalog.from_prefix(str(d.get("catalog", Catalog.MESSIER.prefix()))),
             #layout=[SpecialObject(x) for x in d.get("layout", [])],
             grid_cols=int(d["grid_cols"]) if "grid_cols" in d and not isinstance(d["grid_cols"], list) else 17,

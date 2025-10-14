@@ -45,7 +45,7 @@ def build_mosaic(params: Parameters):
 
     thumb_size_scaled = params.get_thumb_size_scaled()
     padding_scaled = params.get_padding_scaled()
-    draw_title(draw, params.catalog.title(), title_font, mosaic_w, thumb_size_scaled, padding_scaled)
+    draw_title(draw, params.title, title_font, mosaic_w, thumb_size_scaled, padding_scaled)
     draw_grid(draw, mosaic, font, params, grid_rows, params.layout, images)
 
     # Show progress if not completed
