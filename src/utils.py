@@ -8,7 +8,7 @@ import io, base64
 # Load images from the input folder with a name that starts with 'prefix' and followed by a number
 # Returns a dictionary mapping the number to the Image object
 def load_images(input_folder: str, prefix: str) -> dict[int, Image.Image]:
-    if not os.path.isdir(input_folder):
+    if not input_folder or not os.path.isdir(input_folder):
         print(f"Error: '{input_folder}' is not a valid directory.")
         return {}
 

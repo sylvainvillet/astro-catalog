@@ -14,6 +14,7 @@ from mosaic import build_mosaic, get_mosaic_dimensions
 from catalog import Catalog
 from special_objects import SpecialObject
 from utils import pil_to_base64
+from enum import Enum
 
 __version__ = "2.0.0"
 
@@ -40,6 +41,10 @@ caldwell_layout: list[SpecialObject] = [
 MESSIER_PARAMETERS_KEY = "astro_catalog_parameters.messier"
 CALDWELL_PARAMETERS_KEY = "astro_catalog_parameters.caldwell"
 CATALOG_SELECTED_KEY = "astro_catalog_selected"
+
+class Layout(Enum):
+    BASIC = "Basic"
+    ENHANCED = "Enhanced"
 
 def main(page: ft.Page):
     print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
@@ -76,6 +81,7 @@ def main(page: ft.Page):
         catalog_prefix = page.client_storage.get(CATALOG_SELECTED_KEY)
     
     params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
+    layout_type: str = Layout.BASIC.value if params.layout.count == 0 else Layout.ENHANCED.value
     pil_image: Image.Image
 
     def get_catalogs_options() -> list[ft.DropdownOption]:
@@ -106,6 +112,31 @@ def main(page: ft.Page):
         generate(None)
         page.update()
 
+    def get_layout_options() -> list[ft.DropdownOption]:
+        options: list[ft.DropdownOption] = []
+        for layout in Layout:
+            options.append(
+                ft.DropdownOption(
+                    key=layout.value,
+                    text=layout.value
+                )
+            )
+        return options
+    
+    def layout_changed(e: ft.ControlEvent):
+        nonlocal params, layout_type
+        layout_type = e.control.value
+        print(f"Layout changed to {layout_type}")
+        if layout_type == Layout.BASIC.value:
+            params.layout = []
+        elif layout_type == Layout.ENHANCED.value:
+            if params.catalog == Catalog.MESSIER:
+                params.layout = messier_layout
+            elif params.catalog == Catalog.CALDWELL:
+                params.layout = caldwell_layout
+        page.update()
+        generate(None)
+
     def input_folder_result(e: ft.FilePickerResultEvent):
         # Check if path is empty
         if not e.path:
@@ -113,11 +144,15 @@ def main(page: ft.Page):
         input_folder_field.value = e.path
         params.input_folder = e.path or ""
         input_folder_field.update()
+        generate(None)
 
     def scale_changed(e: ft.ControlEvent):
         params.scale = e.control.value
         refresh_resolution_label()
         page.update()
+
+    def scale_change_ended(e: ft.ControlEvent):
+        generate(None)
 
     def refresh_resolution_label():
         width, height = get_mosaic_dimensions(params)
@@ -127,21 +162,6 @@ def main(page: ft.Page):
 
     def generate(_):
         nonlocal pil_image
-
-        if params.input_folder == "":
-            error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
-                                          content=ft.Text("Input folder is required."), 
-                                          actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
-            page.open(error_dialog)
-            return
-        
-        # Check if path is empty or has a valid image extension
-        if not params.output_file or not params.output_file.lower().endswith(('.png', '.jpg', '.jpeg', '.tiff')):
-            error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
-                                          content=ft.Text("Please select a valid output file with .png, .jpg, .jpeg, or .tiff extension."), 
-                                          actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
-            page.open(error_dialog)
-            return
         
         buttons_row.disabled = True
         container.controls[0] = placeholder  # loading indicator
@@ -195,7 +215,6 @@ def main(page: ft.Page):
                                       value=params.input_folder,
                                       expand=True,
                                       width=300,
-                                      text_size=12,
                                       on_change=lambda e: setattr(params, "input_folder", e.control.value))
     
     output_file_picker = ft.FilePicker(on_result=output_file_result)
@@ -205,31 +224,27 @@ def main(page: ft.Page):
                                 value=params.title,
                                 expand=True,
                                 width=300,
-                                text_size=12,
-                                on_change=lambda e: setattr(params, "title", e.control.value))
+                                on_change=lambda e: setattr(params, "title", e.control.value),
+                                on_submit=generate)
 
     scale_slider = ft.Slider(
         value=params.scale,
         min=1,
         max=10,
         divisions=9,
-        on_change=scale_changed
+        on_change=scale_changed,
+        on_change_end=scale_change_ended
     )
 
     output_resolution_label = ft.Text()
     refresh_resolution_label() 
 
-    generate_button = ft.ElevatedButton(
-        "Refresh",
-        icon=ft.Icons.REFRESH,
-        on_click=generate,
-    )
     save_button = ft.ElevatedButton(
         "Save",
         icon=ft.Icons.SAVE,
         on_click=save_image,
     )
-    buttons_row = ft.Row([generate_button, save_button], alignment=ft.MainAxisAlignment.CENTER)
+    buttons_row = ft.Row([save_button], alignment=ft.MainAxisAlignment.CENTER)
 
     placeholder = ft.ProgressRing(width=50, height=50)
     container = ft.Column([placeholder], expand=True, alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
@@ -238,7 +253,7 @@ def main(page: ft.Page):
                     ft.Row([
                         ft.Column([
                             ft.Text("Astro Catalog", style=ft.TextStyle(size=30, weight=ft.FontWeight.BOLD)),
-                            ft.Text("Select a catalog and specify the input folder and output file.", style=ft.TextStyle(size=14)),
+                            ft.Text("Select a catalog and specify the input folder containing your images", style=ft.TextStyle(size=14)),
                             ft.Text(f"Created by Sylvain Villet (v{__version__})", style=ft.TextStyle(size=12)),
                         ], horizontal_alignment=ft.CrossAxisAlignment.CENTER),
                     ], alignment=ft.MainAxisAlignment.CENTER),
@@ -258,17 +273,29 @@ def main(page: ft.Page):
                         )
                     ]),
                     title_field,
+                    ft.Dropdown(
+                        editable=True,
+                        label="Layout",
+                        options=get_layout_options(),
+                        value=layout_type,
+                        on_change=layout_changed,
+                    ),
                     ft.Text("Scale:"),
                     scale_slider,
                     output_resolution_label,
                     buttons_row
-                ], scroll=ft.ScrollMode.AUTO)
+                ], 
+                scroll=ft.ScrollMode.AUTO,
+                spacing=20)
 
     page.add(
             ft.Row([
                 left_panel,
                 container
-            ], vertical_alignment=ft.CrossAxisAlignment.START, alignment=ft.MainAxisAlignment.CENTER, expand=True)
+            ], 
+            vertical_alignment=ft.CrossAxisAlignment.START, 
+            alignment=ft.MainAxisAlignment.CENTER, 
+            expand=True)
     )
 
     generate(None)  # Initial generation
