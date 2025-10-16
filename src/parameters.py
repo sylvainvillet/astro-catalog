@@ -52,7 +52,7 @@ class Parameters:
     def to_dict(self) -> dict[str, str | int | float | list[SpecialObject]]:
         d = asdict(self)
         d["catalog"] = self.catalog.prefix()
-        #d["layout"] = [self.catalog.serialize_special_object(obj) for obj in self.layout]
+        d["layout"] = [obj.to_dict() for obj in self.layout]
         return d
 
     @classmethod
@@ -62,7 +62,9 @@ class Parameters:
             output_file=str(d.get("output_file", "messier_catalog.jpg")),
             title=str(d.get("title", "")),
             catalog=Catalog.from_prefix(str(d.get("catalog", Catalog.MESSIER.prefix()))),
-            #layout=[SpecialObject(x) for x in d.get("layout", [])],
+            layout=[
+                SpecialObject.from_dict(obj) for obj in d.get("layout", []) if isinstance(obj, dict)
+            ],
             grid_cols=int(d["grid_cols"]) if "grid_cols" in d and not isinstance(d["grid_cols"], list) else 17,
             scale=float(d["scale"]) if "scale" in d and not isinstance(d["scale"], list) else 3.0,
             font_path=str(d.get("font_path", "/System/Library/Fonts/HelveticaNeue.ttc")),

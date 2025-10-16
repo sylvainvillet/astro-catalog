@@ -58,7 +58,6 @@ def main(page: ft.Page):
     if page.client_storage.contains_key(MESSIER_PARAMETERS_KEY):  # True if the key exists
         data = page.client_storage.get(MESSIER_PARAMETERS_KEY)
         messier_params = Parameters.from_dict(data if data is not None else {})
-        messier_params.layout = copy.deepcopy(messier_layout)
     else:
         messier_params = Parameters(
             output_file="messier_catalog.png",
@@ -69,7 +68,6 @@ def main(page: ft.Page):
     if page.client_storage.contains_key(CALDWELL_PARAMETERS_KEY):  # True if the key exists
         data = page.client_storage.get(CALDWELL_PARAMETERS_KEY)
         caldwell_params = Parameters.from_dict(data if data is not None else {})
-        caldwell_params.layout = copy.deepcopy(caldwell_layout)
     else:
         caldwell_params = Parameters(
             output_file="caldwell_catalog.png",
@@ -195,8 +193,30 @@ def main(page: ft.Page):
     def column_changed_ended(e: ft.ControlEvent):
         generate(None)
 
+    def confirm_reset_dialog(e):
+        def on_confirm(e):
+            page.close(confirm_dialog)
+            reset_layout(e)
+
+        def on_cancel(e):
+            page.close(confirm_dialog)
+
+        confirm_dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Confirm Reset"),
+            content=ft.Text("Are you sure you want to reset the layout? This will discard any custom changes."),
+            actions=[
+                ft.TextButton("Cancel", on_click=on_cancel),
+                ft.ElevatedButton("Confirm", on_click=on_confirm),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+        page.open(confirm_dialog)
+
     def reset_layout(e: ft.ControlEvent):
         nonlocal params, layout_type, layout_dropdown, columns_slider
+
         if params.catalog == Catalog.MESSIER:
             params.layout = copy.deepcopy(messier_layout)
         elif params.catalog == Catalog.CALDWELL:
@@ -371,7 +391,7 @@ def main(page: ft.Page):
                     ft.ElevatedButton(
                         "Reset Layout",
                         icon=ft.Icons.UNDO,
-                        on_click=reset_layout,
+                        on_click=confirm_reset_dialog,
                     ),
                     ft.Row([
                         ft.Text("Scale:"),
