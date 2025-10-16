@@ -64,6 +64,4 @@ def build_mosaic(params: Parameters) -> Image.Image:
         progress_text = f"Progress: {images_count} / {catalog_count}"
         draw_progress(draw, progress_text, font, params.grid_cols - 2, grid_rows - 1, padding_scaled, thumb_size_scaled)
 
-    mosaic.save(params.output_file)
-    print(f"Saved {params.output_file}")
     return mosaic
