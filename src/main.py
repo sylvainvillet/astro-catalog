@@ -81,7 +81,8 @@ def main(page: ft.Page):
         catalog_prefix = page.client_storage.get(CATALOG_SELECTED_KEY)
     
     params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
-    layout_type: str = Layout.BASIC.value if params.layout.count == 0 else Layout.ENHANCED.value
+    print("layout count:", len(params.layout))
+    layout_type: str = Layout.BASIC.value if len(params.layout) == 0 else Layout.ENHANCED.value
     pil_image: Image.Image
 
     def get_catalogs_options() -> list[ft.DropdownOption]:
