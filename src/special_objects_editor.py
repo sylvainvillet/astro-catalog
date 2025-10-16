@@ -47,11 +47,11 @@ def special_objects_editor(page: ft.Page, original_objects: list[SpecialObject])
             table.controls.append(row)
 
         # Add new object row
-        add_numbers = ft.TextField(label="Number(s)", width=140, dense=True)
-        add_x = ft.TextField(label="Column", width=100, dense=True)
-        add_y = ft.TextField(label="Row", width=100, dense=True)
-        add_w = ft.TextField(label="Width", width=100, dense=True)
-        add_h = ft.TextField(label="Height", width=100, dense=True)
+        add_numbers = ft.TextField(label="Number(s)", width=140, dense=True, on_submit=lambda e: add_clicked(e))
+        add_x = ft.TextField(label="Column", width=100, dense=True, on_submit=lambda e: add_clicked(e))
+        add_y = ft.TextField(label="Row", width=100, dense=True, on_submit=lambda e: add_clicked(e))
+        add_w = ft.TextField(label="Width", width=100, dense=True, on_submit=lambda e: add_clicked(e))
+        add_h = ft.TextField(label="Height", width=100, dense=True, on_submit=lambda e: add_clicked(e))
 
         def add_clicked(e):
             try:

@@ -189,6 +189,7 @@ def main(page: ft.Page):
 
     def column_changed(e: ft.ControlEvent):
         params.grid_cols = int(round(e.control.value))
+        refresh_resolution_label()
         page.update()
 
     def column_changed_ended(e: ft.ControlEvent):
@@ -204,7 +205,7 @@ def main(page: ft.Page):
 
         confirm_dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Confirm Restore Default Layout"),
+            title=ft.Text("Restore Default Layout"),
             content=ft.Text("Are you sure you want to restore the default layout? This will discard any custom changes."),
             actions=[
                 ft.TextButton("Cancel", on_click=on_cancel),
