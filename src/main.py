@@ -31,7 +31,7 @@ messier_layout: list[SpecialObject] = [
 
 caldwell_layout: list[SpecialObject] = [
     SpecialObject(numbers=[20], x=2, y=1, width=3, height=2),   # North America Nebula
-    SpecialObject(numbers=[33], x=13, y=2, width=2, height=3),  # Veil Nebula
+    SpecialObject(numbers=[33], x=12, y=2, width=2, height=3),  # Veil Nebula
     SpecialObject(numbers=[34], x=14, y=2, width=2, height=3),  # Veil Nebula
     SpecialObject(numbers=[68], x=8, y=2, width=2, height=2),   # Helix Nebula
     SpecialObject(numbers=[70], x=3, y=4, width=3, height=2),   # NGC 300
@@ -203,8 +203,8 @@ def main(page: ft.Page):
 
         confirm_dialog = ft.AlertDialog(
             modal=True,
-            title=ft.Text("Confirm Reset"),
-            content=ft.Text("Are you sure you want to reset the layout? This will discard any custom changes."),
+            title=ft.Text("Confirm Restore Default Layout"),
+            content=ft.Text("Are you sure you want to restore the default layout? This will discard any custom changes."),
             actions=[
                 ft.TextButton("Cancel", on_click=on_cancel),
                 ft.ElevatedButton("Confirm", on_click=on_confirm),
@@ -346,7 +346,12 @@ def main(page: ft.Page):
         icon=ft.Icons.SAVE,
         on_click=save_image,
     )
-    buttons_row = ft.Row([save_button], alignment=ft.MainAxisAlignment.CENTER)
+    reset_button = ft.ElevatedButton(
+                        "Restore Default Layout",
+                        icon=ft.Icons.UNDO,
+                        on_click=confirm_reset_dialog
+    )
+    buttons_row = ft.Row([save_button, reset_button], alignment=ft.MainAxisAlignment.CENTER)
 
     placeholder = ft.ProgressRing(width=50, height=50)
     container = ft.Column([placeholder], expand=True, alignment=ft.MainAxisAlignment.CENTER, horizontal_alignment=ft.CrossAxisAlignment.CENTER)
@@ -375,7 +380,6 @@ def main(page: ft.Page):
                         )
                     ]),
                     title_field,
-                    ft.Text("Layout:"),
                     ft.Row([
                         layout_dropdown,
                         ft.ElevatedButton(
@@ -388,11 +392,6 @@ def main(page: ft.Page):
                         ft.Text("Columns:"),
                         columns_slider,
                     ]),
-                    ft.ElevatedButton(
-                        "Reset Layout",
-                        icon=ft.Icons.UNDO,
-                        on_click=confirm_reset_dialog,
-                    ),
                     ft.Row([
                         ft.Text("Scale:"),
                         scale_slider,
