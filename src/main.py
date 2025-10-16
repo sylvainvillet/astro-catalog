@@ -13,6 +13,7 @@ from parameters import Parameters
 from mosaic import build_mosaic, get_mosaic_dimensions
 from catalog import Catalog
 from special_objects import SpecialObject
+from special_objects_editor import special_objects_editor
 from utils import pil_to_base64
 from enum import Enum
 
@@ -136,6 +137,46 @@ def main(page: ft.Page):
                 params.layout = caldwell_layout
         page.update()
         generate(None)
+
+
+    def open_editor_dialog(e):
+        objects_copy, table = special_objects_editor(page, params.layout)
+
+        def apply_changes(_):
+            # Copy all values from fields to original list
+            new_list = []
+            for obj in objects_copy:
+                try:
+                    numbers = [int(x.strip()) for x in obj._fields[0].value.split(",") if x.strip()]
+                    x = int(obj._fields[1].value)
+                    y = int(obj._fields[2].value)
+                    width = int(obj._fields[3].value)
+                    height = int(obj._fields[4].value)
+                    new_list.append(SpecialObject(numbers=numbers, x=x, y=y, width=width, height=height))
+                except ValueError:
+                    page.update()
+                    return
+            # Apply to original
+            params.layout.clear()
+            params.layout.extend(new_list)
+            page.close(dialog)
+            generate(None)
+
+        def cancel_changes(e):
+            page.close(dialog)
+
+        dialog = ft.AlertDialog(
+            modal=True,
+            title=ft.Text("Edit Layout"),
+            content=ft.Container(width=700, height=400, content=table),
+            actions=[
+                ft.TextButton("Cancel", on_click=cancel_changes),
+                ft.ElevatedButton("Apply", on_click=apply_changes),
+            ],
+            actions_alignment=ft.MainAxisAlignment.END,
+        )
+
+        page.open(dialog)
 
     def input_folder_result(e: ft.FilePickerResultEvent):
         # Check if path is empty
@@ -273,13 +314,20 @@ def main(page: ft.Page):
                         )
                     ]),
                     title_field,
-                    ft.Dropdown(
-                        editable=True,
-                        label="Layout",
-                        options=get_layout_options(),
-                        value=layout_type,
-                        on_change=layout_changed,
-                    ),
+                    ft.Row([
+                        ft.Dropdown(
+                            editable=True,
+                            label="Layout",
+                            options=get_layout_options(),
+                            value=layout_type,
+                            on_change=layout_changed,
+                        ),
+                        ft.ElevatedButton(
+                            "Edit",
+                            icon=ft.Icons.EDIT,
+                            on_click=open_editor_dialog,
+                        )
+                    ]),
                     ft.Text("Scale:"),
                     scale_slider,
                     output_resolution_label,
