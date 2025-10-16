@@ -276,7 +276,7 @@ def main(page: ft.Page):
 
     layout_dropdown = ft.Dropdown(
                             editable=True,
-                            label="Mode",
+                            label="Layout",
                             options=get_layout_options(),
                             value=layout_type,
                             on_change=layout_changed)
