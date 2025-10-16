@@ -2,82 +2,126 @@ import copy
 import flet as ft
 from special_objects import SpecialObject
 
-def special_objects_editor(page: ft.Page, original_objects: list[SpecialObject]) -> tuple[list[SpecialObject], ft.Column]:
-    """
-    Returns a container with an editable table.
-    Changes are applied to a copy and only saved to original_objects on Apply.
-    """
-    # Work on a deep copy so Cancel discards changes
-    objects = copy.deepcopy(original_objects)
+FIELD_WIDTH = 100
 
-    table = ft.Column(spacing=10, scroll=ft.ScrollMode.AUTO)
+def open_special_objects_editor(page: ft.Page, data: list[SpecialObject], on_apply: callable):
+    # Make a deep copy of data so Cancel doesn't affect original
+    import copy
+    data_copy = copy.deepcopy(data)
 
-    def refresh_table():
-        table.controls.clear()
+    rows: list[ft.Row] = []
+    fields_refs: list[dict[str, ft.TextField]] = []
 
-        for idx, obj in enumerate(objects):
-            numbers_field = ft.TextField(
-                value=",".join(map(str, obj.numbers)), width=140, label="Number(s)", dense=True
-            )
-            x_field = ft.TextField(value=str(obj.x), width=100, label="Column", dense=True)
-            y_field = ft.TextField(value=str(obj.y), width=100, label="Row", dense=True)
-            w_field = ft.TextField(value=str(obj.width), width=100, label="Width", dense=True)
-            h_field = ft.TextField(value=str(obj.height), width=100, label="Height", dense=True)
+    # Helper to create a row
+    def make_row(obj: SpecialObject | None = None) -> ft.Row:
+        numbers = ft.TextField(
+            value=",".join(str(n) for n in obj.numbers) if obj else "",
+            label="Numbers",
+            width=150,
+        )
+        x = ft.TextField(value=str(obj.x) if obj else "", label="Column", width=FIELD_WIDTH)
+        y = ft.TextField(value=str(obj.y) if obj else "", label="Row", width=FIELD_WIDTH)
+        width = ft.TextField(value=str(obj.width) if obj else "", label="Width", width=FIELD_WIDTH)
+        height = ft.TextField(value=str(obj.height) if obj else "", label="Height", width=FIELD_WIDTH)
 
-            # Store references in the object for later Apply
-            obj._fields = (numbers_field, x_field, y_field, w_field, h_field)
+        ref = {"numbers": numbers, "x": x, "y": y, "width": width, "height": height}
+        fields_refs.append(ref)
 
-            def delete_clicked(e, i=idx):
-                objects.pop(i)
-                refresh_table()
-                page.update()
-
-            row = ft.Row(
-                [
-                    numbers_field,
-                    x_field,
-                    y_field,
-                    w_field,
-                    h_field,
-                    ft.IconButton(ft.Icons.DELETE, tooltip="Delete", on_click=delete_clicked),
-                ],
-                alignment=ft.MainAxisAlignment.START,
-                spacing=5,
-            )
-            table.controls.append(row)
-
-        # Add new object row
-        add_numbers = ft.TextField(label="Number(s)", width=140, dense=True, on_submit=lambda e: add_clicked(e))
-        add_x = ft.TextField(label="Column", width=100, dense=True, on_submit=lambda e: add_clicked(e))
-        add_y = ft.TextField(label="Row", width=100, dense=True, on_submit=lambda e: add_clicked(e))
-        add_w = ft.TextField(label="Width", width=100, dense=True, on_submit=lambda e: add_clicked(e))
-        add_h = ft.TextField(label="Height", width=100, dense=True, on_submit=lambda e: add_clicked(e))
-
-        def add_clicked(e):
-            try:
-                new_obj = SpecialObject(
-                    numbers=[int(x.strip()) for x in add_numbers.value.split(",") if x.strip()],
-                    x=int(add_x.value),
-                    y=int(add_y.value),
-                    width=int(add_w.value),
-                    height=int(add_h.value),
-                )
-                new_obj._fields = (add_numbers, add_x, add_y, add_w, add_h)
-                objects.append(new_obj)
-                refresh_table()
-                page.update()
-            except ValueError:
-                page.snack_bar = ft.SnackBar(ft.Text("Invalid numeric value"))
-                page.snack_bar.open = True
-                page.update()
-
-        table.controls.append(
-            ft.Row(
-                [add_numbers, add_x, add_y, add_w, add_h, ft.IconButton(ft.Icons.ADD, tooltip="Add", on_click=add_clicked)],
-                alignment=ft.MainAxisAlignment.START,
-                spacing=5,
-            )
+        remove_btn = ft.IconButton(
+            icon=ft.Icons.DELETE,
+            tooltip="Remove this object",
+            on_click=lambda e: remove_row(row_container, ref),
         )
 
-    refresh_table()
-    return objects, table
+        row_container = ft.Row(
+            [numbers, x, y, width, height, remove_btn],
+            alignment=ft.MainAxisAlignment.START,
+        )
+
+        return row_container
+
+    # Remove row
+    def remove_row(row: ft.Row, ref: dict[str, ft.TextField]):
+        if row in rows:
+            rows.remove(row)
+        if ref in fields_refs:
+            fields_refs.remove(ref)
+        editor_col.controls.remove(row)
+        page.update()
+
+    # Add new row
+    def add_new_row(_):
+        new_row = make_row()
+        rows.append(new_row)
+        editor_col.controls.insert(len(editor_col.controls) - 1, new_row)
+        page.update()
+
+    # Apply all changes
+    def apply_changes(_):
+        nonlocal data
+        new_data: list[SpecialObject] = []
+
+        for ref in fields_refs:
+            # Skip completely empty rows
+            if not any(ref[f].value.strip() for f in ref):
+                continue
+            try:
+                new_obj = SpecialObject(
+                    numbers=[int(x.strip()) for x in ref["numbers"].value.split(",") if x.strip()],
+                    x=int(ref["x"].value),
+                    y=int(ref["y"].value),
+                    width=int(ref["width"].value),
+                    height=int(ref["height"].value),
+                )
+                new_data.append(new_obj)
+            except ValueError:
+                # Ignore invalid rows silently (could show an alert instead)
+                pass
+
+        # Replace the original list contents
+        data.clear()
+        data.extend(new_data)
+
+        page.close(dialog)
+        
+        # Call the callback if provided
+        if on_apply:
+            on_apply()
+
+    # Cancel edits
+    def cancel_changes(e):
+        page.close(dialog)
+
+    # Build UI
+    editor_col = ft.Column(scroll=ft.ScrollMode.AUTO, expand=True)
+
+    # Add existing rows
+    # Sort objects by the first number in their 'numbers' list; objects with empty 'numbers' are sorted last due to float('inf')
+    for obj in sorted(data_copy, key=lambda o: o.numbers[0] if o.numbers else float('inf')):
+        row = make_row(obj)
+        rows.append(row)
+        editor_col.controls.append(row)
+
+    # Add button bar
+    button_row = ft.Row(
+        [
+            ft.ElevatedButton("Add Row", on_click=add_new_row),
+            ft.Row(
+                [
+                    ft.TextButton("Cancel", on_click=cancel_changes),
+                    ft.FilledButton("Apply", on_click=apply_changes),
+                ]
+            ),
+        ],
+        alignment=ft.MainAxisAlignment.SPACE_BETWEEN,
+    )
+    editor_col.controls.append(button_row)
+
+    dialog = ft.AlertDialog(
+        modal=True,
+        title=ft.Text("Edit Special Objects"),
+        content=ft.Container(content=editor_col, width=700),
+    )
+
+    page.open(dialog)
+    page.update()
