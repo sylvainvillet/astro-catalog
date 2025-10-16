@@ -84,7 +84,7 @@ def draw_grid(draw: ImageDraw.ImageDraw,
 
     # Place large objects first
     for special in special_objects:
-        place_object(special.numbers, special.x, special.y, special.width, special.height)
+        place_object(special.numbers, special.x - 1, special.y, special.width, special.height)
 
     # Place remaining small objects
     for i in range(params.catalog.count()):
