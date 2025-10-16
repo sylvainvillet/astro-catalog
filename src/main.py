@@ -16,6 +16,7 @@ from special_objects import SpecialObject
 from special_objects_editor import special_objects_editor
 from utils import pil_to_base64
 from enum import Enum
+import copy
 
 __version__ = "2.0.0"
 
@@ -57,24 +58,24 @@ def main(page: ft.Page):
     if page.client_storage.contains_key(MESSIER_PARAMETERS_KEY):  # True if the key exists
         data = page.client_storage.get(MESSIER_PARAMETERS_KEY)
         messier_params = Parameters.from_dict(data if data is not None else {})
-        messier_params.layout = messier_layout
+        messier_params.layout = copy.deepcopy(messier_layout)
     else:
         messier_params = Parameters(
             output_file="messier_catalog.png",
             title=Catalog.MESSIER.title(),
-            layout=messier_layout,
+            layout=copy.deepcopy(messier_layout),
         )
 
     if page.client_storage.contains_key(CALDWELL_PARAMETERS_KEY):  # True if the key exists
         data = page.client_storage.get(CALDWELL_PARAMETERS_KEY)
         caldwell_params = Parameters.from_dict(data if data is not None else {})
-        caldwell_params.layout = caldwell_layout
+        caldwell_params.layout = copy.deepcopy(caldwell_layout)
     else:
         caldwell_params = Parameters(
             output_file="caldwell_catalog.png",
             title=Catalog.CALDWELL.title(),
             catalog=Catalog.CALDWELL,
-            layout=caldwell_layout
+            layout=copy.deepcopy(caldwell_layout)
         )
 
     catalog_prefix = Catalog.MESSIER.prefix()
@@ -132,9 +133,9 @@ def main(page: ft.Page):
             params.layout = []
         elif layout_type == Layout.ENHANCED.value:
             if params.catalog == Catalog.MESSIER:
-                params.layout = messier_layout
+                params.layout = copy.deepcopy(messier_layout)
             elif params.catalog == Catalog.CALDWELL:
-                params.layout = caldwell_layout
+                params.layout = copy.deepcopy(caldwell_layout)
         page.update()
         generate(None)
 
@@ -185,6 +186,29 @@ def main(page: ft.Page):
         input_folder_field.value = e.path
         params.input_folder = e.path or ""
         input_folder_field.update()
+        generate(None)
+
+    def column_changed(e: ft.ControlEvent):
+        params.grid_cols = int(round(e.control.value))
+        page.update()
+
+    def column_changed_ended(e: ft.ControlEvent):
+        generate(None)
+
+    def reset_layout(e: ft.ControlEvent):
+        nonlocal params, layout_type, layout_dropdown, columns_slider
+        if params.catalog == Catalog.MESSIER:
+            params.layout = copy.deepcopy(messier_layout)
+        elif params.catalog == Catalog.CALDWELL:
+            params.layout = copy.deepcopy(caldwell_layout)
+
+        layout_type = Layout.ENHANCED.value
+        layout_dropdown.value = layout_type
+        
+        params.grid_cols = 17
+        columns_slider.value = params.grid_cols
+
+        page.update()
         generate(None)
 
     def scale_changed(e: ft.ControlEvent):
@@ -268,13 +292,30 @@ def main(page: ft.Page):
                                 on_change=lambda e: setattr(params, "title", e.control.value),
                                 on_submit=generate)
 
+    layout_dropdown = ft.Dropdown(
+                            editable=True,
+                            label="Mode",
+                            options=get_layout_options(),
+                            value=layout_type,
+                            on_change=layout_changed)
+
+    columns_slider = ft.Slider(
+        value=params.grid_cols,
+        min=5,
+        max=25,
+        divisions=19,
+        on_change=column_changed,
+        on_change_end=column_changed_ended,
+        label="{value}",
+    )
+
     scale_slider = ft.Slider(
         value=params.scale,
         min=1,
         max=10,
         divisions=9,
         on_change=scale_changed,
-        on_change_end=scale_change_ended
+        on_change_end=scale_change_ended,
     )
 
     output_resolution_label = ft.Text()
@@ -314,22 +355,28 @@ def main(page: ft.Page):
                         )
                     ]),
                     title_field,
+                    ft.Text("Layout:"),
                     ft.Row([
-                        ft.Dropdown(
-                            editable=True,
-                            label="Layout",
-                            options=get_layout_options(),
-                            value=layout_type,
-                            on_change=layout_changed,
-                        ),
+                        layout_dropdown,
                         ft.ElevatedButton(
                             "Edit",
                             icon=ft.Icons.EDIT,
                             on_click=open_editor_dialog,
-                        )
+                        ),
                     ]),
-                    ft.Text("Scale:"),
-                    scale_slider,
+                    ft.Row([
+                        ft.Text("Columns:"),
+                        columns_slider,
+                    ]),
+                    ft.ElevatedButton(
+                        "Reset Layout",
+                        icon=ft.Icons.UNDO,
+                        on_click=reset_layout,
+                    ),
+                    ft.Row([
+                        ft.Text("Scale:"),
+                        scale_slider,
+                    ]),
                     output_resolution_label,
                     buttons_row
                 ], 
