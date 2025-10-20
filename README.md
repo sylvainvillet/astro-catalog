@@ -5,6 +5,8 @@ The script arranges the objects into a configurable grid, supports larger slots 
 
 Perfect for creating a large-format print.
 
+![Astro Catalog](astro-catalog.png)
+
 ---
 
 ## Features
@@ -15,6 +17,7 @@ Perfect for creating a large-format print.
 - Supports grouping **multiple objects** in one slot for objects close to each other (e.g. M42 and M43, M31 and M32)
 - Adds a **title** and **progress counter** if it's not completed yet
 - Draws **labels** on images and placeholders for missing ones
+- Adjustable size of the final image
 - Saves as JPEG, PNG or TIFF
 
 ---
