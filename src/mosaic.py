@@ -10,11 +10,13 @@ except ImportError:
 
 from layout import compute_grid_rows, draw_grid
 from drawing import draw_title, draw_progress
-from utils import load_images, open_with_default_viewer
+from utils import load_images
 from parameters import Parameters
 
 def get_mosaic_dimensions(params: Parameters) -> tuple[int, int]:
-    grid_rows = compute_grid_rows(params.grid_cols, params.layout, params.catalog.count())
+    grid_rows = compute_grid_rows(params.grid_cols, 
+                                  params.get_special_objects(), 
+                                  params.catalog.count())
     thumb_size_scaled = params.get_thumb_size_scaled()
     padding_scaled = params.get_padding_scaled()
     mosaic_w = params.grid_cols * thumb_size_scaled + 2 * padding_scaled
@@ -24,11 +26,12 @@ def get_mosaic_dimensions(params: Parameters) -> tuple[int, int]:
 # Build the mosaic image based on the provided arguments, layout map, and catalog
 def build_mosaic(params: Parameters) -> Image.Image:
     # Load individual images
+    special_objects = params.get_special_objects()
     images: dict[int, Image.Image] = load_images(params.input_folder, params.catalog.prefix())
 
     # Create output image
     catalog_count = params.catalog.count()
-    grid_rows = compute_grid_rows(params.grid_cols, params.layout, catalog_count)
+    grid_rows = compute_grid_rows(params.grid_cols, special_objects, catalog_count)
     mosaic_w, mosaic_h = get_mosaic_dimensions(params)
     mosaic = Image.new("RGB", (mosaic_w, mosaic_h), "black")
     draw = ImageDraw.Draw(mosaic)
@@ -46,13 +49,13 @@ def build_mosaic(params: Parameters) -> Image.Image:
     thumb_size_scaled = params.get_thumb_size_scaled()
     padding_scaled = params.get_padding_scaled()
     draw_title(draw, params.title, title_font, mosaic_w, thumb_size_scaled, padding_scaled)
-    draw_grid(draw, mosaic, font, params, grid_rows, params.layout, images)
+    draw_grid(draw, mosaic, font, params, grid_rows, special_objects, images)
 
     # Show progress if not completed
     images_count = 0
     for num in images:
         found = False
-        for obj in params.layout:
+        for obj in special_objects:
             if num in obj.numbers:
                 images_count += obj.objects()
                 found = True

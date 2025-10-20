@@ -9,9 +9,10 @@ except ImportError:
     from PIL import Image
 
 import flet as ft
-from parameters import Parameters
+from parameters import LayoutMode, Parameters
 from mosaic import build_mosaic, get_mosaic_dimensions
 from catalog import Catalog
+from storage import Storage
 from special_objects import SpecialObject
 from special_objects_editor import open_special_objects_editor
 from utils import pil_to_base64
@@ -20,69 +21,13 @@ import copy
 
 __version__ = "2.0.0"
 
-messier_layout: list[SpecialObject] = [
-    SpecialObject(numbers=[8, 20],       x=3, y=2, width=2, height=3),   # Lagoon Nebula
-    SpecialObject(numbers=[16],          x=15, y=2, width=2, height=2),  # Eagle Nebula
-    SpecialObject(numbers=[31, 32, 110], x=8, y=2, width=4, height=2),   # Andromeda
-    SpecialObject(numbers=[33],          x=2, y=6, width=3, height=2),   # Triangulum Galaxy
-    SpecialObject(numbers=[42, 43],      x=7, y=5, width=2, height=3),   # Orion Nebula
-    SpecialObject(numbers=[45],          x=14, y=5, width=2, height=2),  # Pleiades
-]
-
-caldwell_layout: list[SpecialObject] = [
-    SpecialObject(numbers=[20], x=2, y=1, width=3, height=2),   # North America Nebula
-    SpecialObject(numbers=[33], x=12, y=2, width=2, height=3),  # Veil Nebula
-    SpecialObject(numbers=[34], x=14, y=2, width=2, height=3),  # Veil Nebula
-    SpecialObject(numbers=[68], x=8, y=2, width=2, height=2),   # Helix Nebula
-    SpecialObject(numbers=[70], x=3, y=4, width=3, height=2),   # NGC 300
-    SpecialObject(numbers=[71], x=8, y=7, width=4, height=2),   # Large Magellanic Cloud
-    SpecialObject(numbers=[72], x=1, y=7, width=3, height=2),   # Small Magellanic Cloud
-    SpecialObject(numbers=[99], x=15, y=6, width=3, height=2),  # Coalsack Nebula
-]
-
-MESSIER_PARAMETERS_KEY = "astro_catalog_parameters.messier"
-CALDWELL_PARAMETERS_KEY = "astro_catalog_parameters.caldwell"
-CATALOG_SELECTED_KEY = "astro_catalog_selected"
-
-class Layout(Enum):
-    BASIC = "Basic"
-    ENHANCED = "Enhanced"
-
 def main(page: ft.Page):
     print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
     
-    # Uncomment to clear storage during development
-    # page.client_storage.clear()  
-
     # Load parameters from client storage or use defaults   
-    if page.client_storage.contains_key(MESSIER_PARAMETERS_KEY):  # True if the key exists
-        data = page.client_storage.get(MESSIER_PARAMETERS_KEY)
-        messier_params = Parameters.from_dict(data if data is not None else {})
-    else:
-        messier_params = Parameters(
-            output_file="messier_catalog.png",
-            title=Catalog.MESSIER.title(),
-            layout=copy.deepcopy(messier_layout),
-        )
-
-    if page.client_storage.contains_key(CALDWELL_PARAMETERS_KEY):  # True if the key exists
-        data = page.client_storage.get(CALDWELL_PARAMETERS_KEY)
-        caldwell_params = Parameters.from_dict(data if data is not None else {})
-    else:
-        caldwell_params = Parameters(
-            output_file="caldwell_catalog.png",
-            title=Catalog.CALDWELL.title(),
-            catalog=Catalog.CALDWELL,
-            layout=copy.deepcopy(caldwell_layout)
-        )
-
-    catalog_prefix = Catalog.MESSIER.prefix()
-    if page.client_storage.contains_key(CATALOG_SELECTED_KEY):  # True if the key exists
-        catalog_prefix = page.client_storage.get(CATALOG_SELECTED_KEY)
-    
-    params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
-    print("layout count:", len(params.layout))
-    layout_type: str = Layout.BASIC.value if len(params.layout) == 0 else Layout.ENHANCED.value
+    storage = Storage(page)
+    storage.clear()  # Uncomment to clear storage during development
+    params: Parameters = storage.load_parameters()
     pil_image: Image.Image
 
     def get_catalogs_options() -> list[ft.DropdownOption]:
@@ -90,32 +35,31 @@ def main(page: ft.Page):
         for catalog in Catalog:
             options.append(
                 ft.DropdownOption(
-                    key=catalog.prefix(),
+                    key=catalog.id(),
                     text=catalog.title()
                 )
             )
         return options
     
     def catalog_changed(e: ft.ControlEvent):
-        nonlocal params, catalog_prefix, messier_params, caldwell_params
+        nonlocal params
         
         # Save params values in the current params object
-        if params.catalog == Catalog.MESSIER:
-            messier_params = params
-        elif params.catalog == Catalog.CALDWELL:
-            caldwell_params = params
-        catalog_prefix = e.control.value
-        params = messier_params if catalog_prefix == Catalog.MESSIER.prefix() else caldwell_params
+        storage.save_parameters(params)
+        catalog = Catalog.from_id(e.control.value)
+        storage.save_catalog(catalog)
+        params = storage.load_parameters()
         input_folder_field.value = params.input_folder
         title_field.value = params.title
         scale_slider.value = params.scale
+        refresh_layout_controls()
         refresh_resolution_label()
         generate(None)
         page.update()
 
     def get_layout_options() -> list[ft.DropdownOption]:
         options: list[ft.DropdownOption] = []
-        for layout in Layout:
+        for layout in LayoutMode:
             options.append(
                 ft.DropdownOption(
                     key=layout.value,
@@ -125,16 +69,9 @@ def main(page: ft.Page):
         return options
     
     def layout_changed(e: ft.ControlEvent):
-        nonlocal params, layout_type
-        layout_type = e.control.value
-        print(f"Layout changed to {layout_type}")
-        if layout_type == Layout.BASIC.value:
-            params.layout = []
-        elif layout_type == Layout.ENHANCED.value:
-            if params.catalog == Catalog.MESSIER:
-                params.layout = copy.deepcopy(messier_layout)
-            elif params.catalog == Catalog.CALDWELL:
-                params.layout = copy.deepcopy(caldwell_layout)
+        nonlocal params
+        params.layout_mode = LayoutMode(e.control.value)
+        refresh_layout_controls()
         page.update()
         generate(None)
 
@@ -177,21 +114,24 @@ def main(page: ft.Page):
         page.open(confirm_dialog)
 
     def reset_layout(e: ft.ControlEvent):
-        nonlocal params, layout_type, layout_dropdown, columns_slider
+        nonlocal params, layout_dropdown, columns_slider
 
-        if params.catalog == Catalog.MESSIER:
-            params.layout = copy.deepcopy(messier_layout)
-        elif params.catalog == Catalog.CALDWELL:
-            params.layout = copy.deepcopy(caldwell_layout)
-
-        layout_type = Layout.ENHANCED.value
-        layout_dropdown.value = layout_type
-        
-        params.grid_cols = 17
-        columns_slider.value = params.grid_cols
+        # Restore default layout for the current catalog
+        default_params = Parameters.default(params.catalog)
+        params.layout = copy.deepcopy(default_params.layout)
+        params.layout_mode = default_params.layout_mode
+        params.grid_cols = default_params.grid_cols
+        refresh_layout_controls()
 
         page.update()
         generate(None)
+
+    def refresh_layout_controls():
+        nonlocal edit_layout_button, layout_dropdown
+        layout_dropdown.value = params.layout_mode.value
+        edit_layout_button.disabled = params.layout_mode == LayoutMode.BASIC
+        columns_slider.value = params.grid_cols
+        page.update()
 
     def scale_changed(e: ft.ControlEvent):
         params.scale = e.control.value
@@ -221,12 +161,8 @@ def main(page: ft.Page):
         container.controls[0] = output_image  # put back image
         
         # Save parameters to client storage
-        if params.catalog == Catalog.MESSIER:
-            page.client_storage.set(MESSIER_PARAMETERS_KEY, params.to_dict())
-        elif params.catalog == Catalog.CALDWELL:
-            page.client_storage.set(CALDWELL_PARAMETERS_KEY, params.to_dict())
-        page.client_storage.set(CATALOG_SELECTED_KEY, params.catalog.prefix())
-
+        storage.save_parameters(params)
+        storage.save_catalog(params.catalog)
         buttons_row.disabled = False
         page.update()
 
@@ -244,6 +180,7 @@ def main(page: ft.Page):
         if not e.path:
             return
         params.output_file = e.path or ""
+        storage.save_parameters(params)
         if pil_image:
             pil_image.save(params.output_file)
             success_dialog = ft.AlertDialog(title=ft.Text("Success"), 
@@ -278,8 +215,13 @@ def main(page: ft.Page):
                             editable=True,
                             label="Layout",
                             options=get_layout_options(),
-                            value=layout_type,
+                            value=params.layout_mode.value,
                             on_change=layout_changed)
+    edit_layout_button = ft.ElevatedButton(
+                            "Edit",
+                            icon=ft.Icons.EDIT,
+                            on_click=lambda _: open_special_objects_editor(page, params.layout, lambda: generate(None)))
+    edit_layout_button.disabled = params.layout_mode == LayoutMode.BASIC
 
     columns_slider = ft.Slider(
         value=params.grid_cols,
@@ -330,7 +272,7 @@ def main(page: ft.Page):
                         editable=True,
                         label="Catalog",
                         options=get_catalogs_options(),
-                        value=catalog_prefix,
+                        value=params.catalog.id(),
                         on_change=catalog_changed,
                     ),
                     ft.Row([
@@ -344,11 +286,7 @@ def main(page: ft.Page):
                     title_field,
                     ft.Row([
                         layout_dropdown,
-                        ft.ElevatedButton(
-                            "Edit",
-                            icon=ft.Icons.EDIT,
-                            on_click=lambda _: open_special_objects_editor(page, params.layout, lambda: generate(None)),
-                        ),
+                        edit_layout_button,
                     ]),
                     ft.Row([
                         ft.Text("Columns:"),

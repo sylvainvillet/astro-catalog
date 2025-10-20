@@ -26,7 +26,7 @@ def load_images(input_folder: str, prefix: str) -> dict[int, Image.Image]:
         except Exception as e:
             print(f"Error loading {fname}: {e}")
 
-    print(f"Loaded {len(images)} image(s)")
+    print(f"Loaded {len(images)} image(s) with prefix '{prefix}' from '{input_folder}'.")
     return images
 
 # Open a file with the default image viewer based on the OS
