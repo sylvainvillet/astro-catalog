@@ -1,12 +1,11 @@
-import flet as ft
+from flet import Page
 from catalog import Catalog
 from parameters import Parameters
 
-PARAMETERS_KEY = "astro_catalog_parameters"
 CATALOG_SELECTED_KEY = "astro_catalog_selected"
 
 class Storage:
-    def __init__(self, page: ft.Page):
+    def __init__(self, page: Page):
         self.page = page
 
     def save_parameters(self, params: Parameters):

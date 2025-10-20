@@ -27,10 +27,23 @@ class SpecialObject:
     
     @classmethod
     def from_dict(cls, d: dict[str, list[int] | int]) -> "SpecialObject":
+        numbers = d.get("numbers", [])
+        if isinstance(numbers, int):
+            numbers = [numbers]
+        # No need to check for list, as numbers will be a list or int
+
+        def safe_int(d: dict[str, list[int] | int], key: str, default: int) -> int:
+            val = d.get(key, default)
+            if isinstance(val, int):
+                return val
+            if len(val) > 0:
+                return val[0]
+            return default
+
         return cls(
-            numbers=d.get("numbers", []),
-            x=d.get("x", 0),
-            y=d.get("y", 0),
-            width=d.get("width", 1),
-            height=d.get("height", 1),
+            numbers=numbers,
+            x=safe_int(d, "x", 1),
+            y=safe_int(d, "y", 1),
+            width=safe_int(d, "width", 1),
+            height=safe_int(d, "height", 1),
         )

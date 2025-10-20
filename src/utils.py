@@ -1,6 +1,4 @@
 import os
-import sys
-import subprocess
 import re
 from PIL import Image
 import io, base64
@@ -28,15 +26,6 @@ def load_images(input_folder: str, prefix: str) -> dict[int, Image.Image]:
 
     print(f"Loaded {len(images)} image(s) with prefix '{prefix}' from '{input_folder}'.")
     return images
-
-# Open a file with the default image viewer based on the OS
-def open_with_default_viewer(path: str):
-    if sys.platform.startswith("darwin"):      # macOS
-        subprocess.run(["open", path])
-    elif sys.platform.startswith("win"):       # Windows
-        subprocess.run(["start", "", path], shell=True)
-    elif sys.platform.startswith("linux"):     # Linux
-        subprocess.run(["xdg-open", path])
 
 # Convert a Pillow Image to base64 string for Flet.
 def pil_to_base64(pil_image: Image.Image) -> str:

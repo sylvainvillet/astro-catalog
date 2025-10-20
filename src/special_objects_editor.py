@@ -1,10 +1,11 @@
 import copy
 import flet as ft
+from typing import Callable
 from special_objects import SpecialObject
 
 FIELD_WIDTH = 100
 
-def open_special_objects_editor(page: ft.Page, data: list[SpecialObject], on_apply: callable):
+def open_special_objects_editor(page: ft.Page, data: list[SpecialObject], on_apply: Callable[[], None]):
     # Make a deep copy of data so Cancel doesn't affect original
     data_copy = copy.deepcopy(data)
 
@@ -49,28 +50,28 @@ def open_special_objects_editor(page: ft.Page, data: list[SpecialObject], on_app
         page.update()
 
     # Add new row
-    def add_new_row(_):
+    def add_new_row(_: ft.ControlEvent):
         new_row = make_row()
         rows.append(new_row)
         editor_col.controls.insert(len(editor_col.controls) - 1, new_row)
         page.update()
 
     # Apply all changes
-    def apply_changes(_):
+    def apply_changes(_: ft.ControlEvent):
         nonlocal data
         new_data: list[SpecialObject] = []
 
         for ref in fields_refs:
             # Skip completely empty rows
-            if not any(ref[f].value.strip() for f in ref):
+            if not any((ref[f].value or "").strip() for f in ref):
                 continue
             try:
                 new_obj = SpecialObject(
-                    numbers=[int(x.strip()) for x in ref["numbers"].value.split(",") if x.strip()],
-                    x=int(ref["x"].value),
-                    y=int(ref["y"].value),
-                    width=int(ref["width"].value),
-                    height=int(ref["height"].value),
+                    numbers=[int(x.strip()) for x in (ref["numbers"].value or "").split(",") if x.strip()],
+                    x=int(ref["x"].value or 1),
+                    y=int(ref["y"].value or 1),
+                    width=int(ref["width"].value or 1),
+                    height=int(ref["height"].value or 1),
                 )
                 new_data.append(new_obj)
             except ValueError:
@@ -84,11 +85,11 @@ def open_special_objects_editor(page: ft.Page, data: list[SpecialObject], on_app
         page.close(dialog)
         
         # Call the callback if provided
-        if on_apply:
+        if on_apply is not None:
             on_apply()
 
     # Cancel edits
-    def cancel_changes(e):
+    def cancel_changes(_: ft.ControlEvent):
         page.close(dialog)
 
     # Build UI

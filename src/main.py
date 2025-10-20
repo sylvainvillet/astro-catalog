@@ -24,15 +24,18 @@ def main(page: ft.Page):
     
     # Load parameters from client storage or use defaults   
     storage = Storage(page)
-    storage.clear()  # Uncomment to clear storage during development
+
+    # Uncomment to clear storage during development
+    # storage.clear() 
+    
     params: Parameters = storage.load_parameters()
     pil_image: Image.Image
 
-    def get_catalogs_options() -> list[ft.DropdownOption]:
-        options: list[ft.DropdownOption] = []
+    def get_catalogs_options() -> list[ft.dropdown.Option]:
+        options: list[ft.dropdown.Option] = []
         for catalog in Catalog:
             options.append(
-                ft.DropdownOption(
+                ft.dropdown.Option(
                     key=catalog.id(),
                     text=catalog.title()
                 )
@@ -55,11 +58,11 @@ def main(page: ft.Page):
         generate(None)
         page.update()
 
-    def get_layout_options() -> list[ft.DropdownOption]:
-        options: list[ft.DropdownOption] = []
+    def get_layout_options() -> list[ft.dropdown.Option]:
+        options: list[ft.dropdown.Option] = []
         for layout in LayoutMode:
             options.append(
-                ft.DropdownOption(
+                ft.dropdown.Option(
                     key=layout.value,
                     text=layout.value
                 )
@@ -90,12 +93,12 @@ def main(page: ft.Page):
     def column_changed_ended(e: ft.ControlEvent):
         generate(None)
 
-    def confirm_reset_dialog(e):
-        def on_confirm(e):
+    def confirm_reset_dialog(e: ft.ControlEvent):
+        def on_confirm(_: ft.ControlEvent):
             page.close(confirm_dialog)
-            reset_layout(e)
+            reset_layout()
 
-        def on_cancel(e):
+        def on_cancel(_: ft.ControlEvent):
             page.close(confirm_dialog)
 
         confirm_dialog = ft.AlertDialog(
@@ -111,7 +114,7 @@ def main(page: ft.Page):
 
         page.open(confirm_dialog)
 
-    def reset_layout(e: ft.ControlEvent):
+    def reset_layout():
         nonlocal params, layout_dropdown, columns_slider
 
         # Restore default layout for the current catalog
@@ -145,7 +148,7 @@ def main(page: ft.Page):
         output_resolution_label.value = f"Output resolution: %d x %d px (%d x %d px per square)" % (width, height, thumb_size, thumb_size)
         page.update()
 
-    def generate(_):
+    def generate(_: ft.ControlEvent | None):
         nonlocal pil_image
         
         buttons_row.disabled = True
@@ -164,7 +167,7 @@ def main(page: ft.Page):
         buttons_row.disabled = False
         page.update()
 
-    def save_image(_):
+    def save_image(_: ft.ControlEvent | None):
         if pil_image:
             # Extract folder and file name from output_file
             file_name = params.output_file.split("/")[-1]
