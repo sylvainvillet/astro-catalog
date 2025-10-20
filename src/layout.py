@@ -1,5 +1,4 @@
 from special_objects import SpecialObject
-from catalog import Catalog
 from parameters import Parameters
 from PIL import Image, ImageDraw, ImageFont, ImageOps
 

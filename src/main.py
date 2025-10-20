@@ -13,10 +13,8 @@ from parameters import LayoutMode, Parameters
 from mosaic import build_mosaic, get_mosaic_dimensions
 from catalog import Catalog
 from storage import Storage
-from special_objects import SpecialObject
 from special_objects_editor import open_special_objects_editor
 from utils import pil_to_base64
-from enum import Enum
 import copy
 
 __version__ = "2.0.0"

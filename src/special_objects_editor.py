@@ -6,7 +6,6 @@ FIELD_WIDTH = 100
 
 def open_special_objects_editor(page: ft.Page, data: list[SpecialObject], on_apply: callable):
     # Make a deep copy of data so Cancel doesn't affect original
-    import copy
     data_copy = copy.deepcopy(data)
 
     rows: list[ft.Row] = []
