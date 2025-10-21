@@ -8,6 +8,7 @@ except ImportError:
     subprocess.check_call([sys.executable, "-m", "pip", "install", "Pillow"])
     from PIL import Image
 
+import os
 import flet as ft
 from parameters import LayoutMode, Parameters
 from mosaic import build_mosaic, get_mosaic_dimensions
@@ -169,9 +170,19 @@ def main(page: ft.Page):
 
     def save_image(_: ft.ControlEvent | None):
         if pil_image:
+            file_name = os.path.basename(params.output_file)
+            initial_directory = os.path.dirname(params.output_file)
+
+            # Ensure it exists and use OS-specific separators
+            initial_directory = os.path.normpath(initial_directory)
+
+            if not os.path.isdir(initial_directory):
+                # fallback to home directory
+                initial_directory = os.path.expanduser("~")
+
+            print(f"Open Save As dialog to {initial_directory} with file name {file_name}")
+
             # Extract folder and file name from output_file
-            file_name = params.output_file.split("/")[-1]
-            initial_directory = "/".join(params.output_file.split("/")[:-1])
             output_file_picker.save_file(file_name=file_name, 
                                          initial_directory=initial_directory, 
                                          allowed_extensions=[".png", ".jpg", ".jpeg", ".tiff"])
@@ -183,11 +194,18 @@ def main(page: ft.Page):
         params.output_file = e.path or ""
         storage.save_parameters(params)
         if pil_image:
-            pil_image.save(params.output_file)
-            success_dialog = ft.AlertDialog(title=ft.Text("Success"), 
-                                            content=ft.Text(f"Image saved successfully."), 
-                                            actions=[ft.TextButton("OK", on_click=lambda e: page.close(success_dialog))])
-            page.open(success_dialog)
+            try:
+                pil_image.save(params.output_file)
+                success_dialog = ft.AlertDialog(title=ft.Text("Success"), 
+                                                content=ft.Text(f"Image saved successfully."), 
+                                                actions=[ft.TextButton("OK", on_click=lambda e: page.close(success_dialog))])
+                page.open(success_dialog)
+            except Exception as ex:
+                print(f"Error saving image: {ex}")
+                error_dialog = ft.AlertDialog(title=ft.Text("Error"), 
+                                               content=ft.Text(f"Failed to save image: {ex}"), 
+                                               actions=[ft.TextButton("OK", on_click=lambda e: page.close(error_dialog))])
+                page.open(error_dialog)
 
     page.title = "Astro Catalog"
     page.window.maximized = True
