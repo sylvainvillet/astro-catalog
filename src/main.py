@@ -18,7 +18,7 @@ from special_objects_editor import open_special_objects_editor
 from utils import pil_to_base64
 import copy
 
-__version__ = "2.0.0"
+__version__ = "2.0.1"
 
 def main(page: ft.Page):
     print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
