@@ -22,15 +22,6 @@ Perfect for creating a large-format print.
 
 ---
 
-## Example
-
-Here’s a couple of in-progress examples:
-
-![Messier](messier_catalog.jpg)
-![Caldwell](caldwell_catalog.jpg)
-
----
-
 ## Installation
 
 1. Download the latest release:
@@ -61,3 +52,16 @@ If you want to adjust the framing, you can crop your images with Photoshop, Gimp
 Adjust the scale depending on how big you want the final image. Use a smaller scale for sharing on social networks and a bigger scale for printing.
 
 You can choose the output file format by using PNG, JPEG or TIFF extension when saving the image.
+
+---
+
+## Examples
+
+Basic layout:
+![Messier](messier_catalog_basic.jpg)
+
+Enhanced layout:
+![Messier](messier_catalog.jpg)
+![Caldwell](caldwell_catalog.jpg)
+
+---
