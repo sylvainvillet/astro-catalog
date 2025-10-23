@@ -52,19 +52,20 @@ def build_mosaic(params: Parameters) -> Image.Image:
     draw_grid(draw, mosaic, font, params, grid_rows, special_objects, images)
 
     # Show progress if not completed
-    images_count = 0
-    for num in images:
-        found = False
-        for obj in special_objects:
-            if num in obj.numbers:
-                images_count += obj.objects()
-                found = True
-                break
-        if not found:
-            images_count += 1
+    if params.show_progress:
+        images_count = 0
+        for num in images:
+            found = False
+            for obj in special_objects:
+                if num in obj.numbers:
+                    images_count += obj.objects()
+                    found = True
+                    break
+            if not found:
+                images_count += 1
 
-    if images_count < catalog_count:
-        progress_text = f"Progress: {images_count} / {catalog_count}"
-        draw_progress(draw, progress_text, font, params.grid_cols - 2, grid_rows - 1, padding_scaled, thumb_size_scaled)
+        if images_count < catalog_count:
+            progress_text = f"{images_count} / {catalog_count}"
+            draw_progress(draw, progress_text, font, params.grid_cols - 1, grid_rows - 1, padding_scaled, thumb_size_scaled)
 
     return mosaic

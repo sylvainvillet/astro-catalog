@@ -46,6 +46,7 @@ class Parameters:
     layout: list[SpecialObject] = field(default_factory=list)
     layout_mode: LayoutMode = LayoutMode.ENHANCED
     grid_cols: int = 17
+    show_progress: bool = True
     scale: float = 2.0
     font_path: str = "/System/Library/Fonts/HelveticaNeue.ttc"
 
@@ -112,6 +113,7 @@ class Parameters:
             ],
             layout_mode=LayoutMode(d.get("layout_mode", LayoutMode.ENHANCED.value)),
             grid_cols=int(d["grid_cols"]) if "grid_cols" in d and not isinstance(d["grid_cols"], list) else 17,
+            show_progress=bool(d.get("show_progress", True)),
             scale=float(d["scale"]) if "scale" in d and not isinstance(d["scale"], list) else 3.0,
             font_path=str(d.get("font_path", "/System/Library/Fonts/HelveticaNeue.ttc")),
         )

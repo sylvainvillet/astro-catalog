@@ -18,7 +18,7 @@ from special_objects_editor import open_special_objects_editor
 from utils import pil_to_base64
 import copy
 
-__version__ = "2.0.1"
+__version__ = "2.1.0"
 
 def main(page: ft.Page):
     print(f"Astro Catalog v{__version__}, created by Sylvain Villet")
@@ -53,6 +53,7 @@ def main(page: ft.Page):
         params = storage.load_parameters()
         input_folder_field.value = params.input_folder
         title_field.value = params.title
+        progress_switch.value = params.show_progress
         scale_slider.value = params.scale
         refresh_layout_controls()
         refresh_resolution_label()
@@ -134,6 +135,11 @@ def main(page: ft.Page):
         edit_layout_button.disabled = params.layout_mode == LayoutMode.BASIC
         columns_slider.value = params.grid_cols
         page.update()
+
+    def progress_switch_changed(e: ft.ControlEvent):
+        params.show_progress = e.control.value
+        page.update()
+        generate(None)
 
     def scale_changed(e: ft.ControlEvent):
         params.scale = e.control.value
@@ -252,6 +258,11 @@ def main(page: ft.Page):
         label="{value}",
     )
 
+    progress_switch = ft.Switch(
+        value=params.show_progress,
+        on_change=progress_switch_changed,
+    )
+
     scale_slider = ft.Slider(
         value=params.scale,
         min=1,
@@ -310,6 +321,10 @@ def main(page: ft.Page):
                     ft.Row([
                         ft.Text("Columns:"),
                         columns_slider,
+                    ]),
+                    ft.Row([
+                        ft.Text("Show Progress:"),
+                        progress_switch,
                     ]),
                     ft.Row([
                         ft.Text("Scale:"),
